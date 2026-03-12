@@ -9,6 +9,11 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_TEACHER_PIN: ${{ secrets.VITE_TEACHER_PIN }}
+
     steps:
       - name: Checkout source repo
         uses: actions/checkout@v4
