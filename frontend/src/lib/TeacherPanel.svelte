@@ -248,7 +248,7 @@
               </span>
               <span>
                 {#if row.bowl1 && row.bowl2}
-                  {row.bowl1.total_co2_g - row.bowl2.total_co2_g}
+                  {row.bowl2.total_co2_g - row.bowl1.total_co2_g}
                 {:else}
                   –
                 {/if}
