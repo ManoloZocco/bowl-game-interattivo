@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createSession, countParticipants, fetchClassSummary, finalizeSessionAndAssignNumbers, updateSessionPhase } from './api'
+  import { createSession, countParticipants, fetchClassSummary, finalizeSessionAndAssignNumbers, resetSession, updateSessionPhase } from './api'
   import type { ClassSummaryRow, Session } from './api'
 
   let session: Session | null = null
@@ -40,6 +40,33 @@
       session = { ...session, phase }
     } catch (error) {
       console.error(error)
+    } finally {
+      isLoading = false
+    }
+  }
+
+  function handleNewSession() {
+    if (!window.confirm('Vuoi creare una nuova sessione? La sessione corrente rimarrà nel database ma non sarà più visualizzata qui.')) return
+    session = null
+    isFinalized = false
+    participantCount = 0
+    summary = []
+    errorMessage = ''
+  }
+
+  async function handleResetSession() {
+    if (!session) return
+    if (!window.confirm('Sei sicuro di voler resettare la sessione? Tutte le scelte dei partecipanti saranno azzerate e si tornerà alla Fase 1.')) return
+    try {
+      isLoading = true
+      errorMessage = ''
+      await resetSession(session.id)
+      session = { ...session, phase: 1 }
+      isFinalized = false
+      summary = []
+    } catch (error) {
+      console.error(error)
+      errorMessage = 'Errore durante il reset della sessione.'
     } finally {
       isLoading = false
     }
@@ -98,6 +125,15 @@
           Concludi e assegna numeri
         </button>
       </div>
+    </div>
+
+    <div class="row session-actions">
+      <button class="danger" on:click={handleResetSession} disabled={isLoading}>
+        Resetta sessione
+      </button>
+      <button on:click={handleNewSession} disabled={isLoading}>
+        Nuova sessione
+      </button>
     </div>
 
     {#if isFinalized && summary.length > 0}
@@ -226,6 +262,27 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+  }
+
+  .session-actions {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed rgba(148, 163, 184, 0.6);
+    gap: 0.5rem;
+  }
+
+  .danger {
+    border-radius: 999px;
+    border: 1px solid rgba(220, 38, 38, 0.5);
+    padding: 0.65rem 1.3rem;
+    font-size: 0.95rem;
+    background: white;
+    color: #b91c1c;
+    cursor: pointer;
+  }
+
+  .danger:hover:enabled {
+    background: #fef2f2;
   }
 
   .error {

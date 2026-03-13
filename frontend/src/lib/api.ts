@@ -144,6 +144,19 @@ export async function finalizeSessionAndAssignNumbers(sessionId: string): Promis
   await updateSessionPhase(sessionId, 3)
 }
 
+export async function resetSession(sessionId: string): Promise<void> {
+  const { error: bErr } = await supabase.from('bowls').delete().eq('session_id', sessionId)
+  if (bErr) throw bErr
+
+  const { error: pErr } = await supabase
+    .from('participants')
+    .update({ number: null })
+    .eq('session_id', sessionId)
+  if (pErr) throw pErr
+
+  await updateSessionPhase(sessionId, 1)
+}
+
 export async function fetchClassSummary(sessionId: string): Promise<ClassSummaryRow[]> {
   const { data: participants, error: pErr } = await supabase
     .from('participants')

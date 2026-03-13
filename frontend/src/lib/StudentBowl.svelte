@@ -148,12 +148,20 @@
 
     <section>
       <h4>4. Ingredienti extra</h4>
+      <p class="tiny">
+        {size === 'regular' ? 'Scegli fino a 2 ingredienti extra.' : 'Scegli fino a 3 ingredienti extra.'}
+      </p>
       <div class="pill-row">
         {#each EXTRAS as ing}
           <button
             type="button"
             class:selected={selectedExtras.includes(ing.id)}
-            on:click={() => (selectedExtras = toggleSelection(selectedExtras, ing.id))}
+            on:click={() => {
+              const next = toggleSelection(selectedExtras, ing.id)
+              const limit = size === 'regular' ? 2 : 3
+              if (next.length > limit) return
+              selectedExtras = next
+            }}
           >
             {ing.label}
             {#if liveSession.phase === 2}
