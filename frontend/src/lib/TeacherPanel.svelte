@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { createSession, countParticipants, fetchClassSummary, fetchOpenSessions, fetchSession, finalizeSessionAndAssignNumbers, resetSession, updateSessionPhase } from './api'
+  import { createSession, countParticipants, deleteSession, fetchClassSummary, fetchOpenSessions, fetchSession, finalizeSessionAndAssignNumbers, resetSession, updateSessionPhase } from './api'
   import type { ClassSummaryRow } from './api'
   import type { Session } from './types'
 
@@ -58,9 +58,7 @@
     if (savedId) {
       await restoreSession(savedId)
     }
-    if (!session) {
-      await loadOpenSessions()
-    }
+    await loadOpenSessions()
   })
 
   async function handleCreateSession() {
@@ -70,6 +68,7 @@
       session = await createSession()
       saveSessionToStorage(session)
       participantCount = 0
+      await loadOpenSessions()
     } catch (error) {
       errorMessage = 'Errore nella creazione della sessione.'
       console.error(error)
@@ -80,6 +79,27 @@
 
   async function handleRejoinSession(s: Session) {
     await restoreSession(s.id)
+  }
+
+  async function handleDeleteSession(s: Session) {
+    if (!window.confirm(`Eliminare la sessione ${s.code}? Tutti i dati (partecipanti, bowl) saranno cancellati definitivamente.`)) return
+    try {
+      isLoading = true
+      await deleteSession(s.id)
+      if (session?.id === s.id) {
+        session = null
+        saveSessionToStorage(null)
+        isFinalized = false
+        participantCount = 0
+        summary = []
+      }
+      await loadOpenSessions()
+    } catch (error) {
+      console.error(error)
+      errorMessage = 'Errore durante l\'eliminazione della sessione.'
+    } finally {
+      isLoading = false
+    }
   }
 
   async function refreshCounts() {
@@ -112,7 +132,6 @@
     participantCount = 0
     summary = []
     errorMessage = ''
-    loadOpenSessions()
   }
 
   async function handleResetSession() {
@@ -157,35 +176,7 @@
   }
 </script>
 
-{#if !session}
-  <div class="no-session">
-    <button class="primary" on:click={handleCreateSession} disabled={isLoading}>
-      {isLoading ? 'Creo la sessione…' : 'Crea nuova sessione'}
-    </button>
-
-    {#if errorMessage}
-      <p class="error">{errorMessage}</p>
-    {/if}
-
-    {#if openSessions.length > 0}
-      <div class="open-sessions">
-        <h3>Sessioni esistenti</h3>
-        <p class="hint">Rientra in una sessione già creata.</p>
-        <div class="session-list">
-          {#each openSessions as s}
-            <button class="session-item" on:click={() => handleRejoinSession(s)} disabled={isLoading}>
-              <span class="session-code">{s.code}</span>
-              <span class="session-phase">{phaseLabel(s.phase)}</span>
-              <span class="session-date">{new Date(s.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-            </button>
-          {/each}
-        </div>
-      </div>
-    {:else if loadingOpen}
-      <p class="hint" style="margin-top:1rem">Caricamento sessioni…</p>
-    {/if}
-  </div>
-{:else}
+{#if session}
   <div class="session-card">
     <p class="label">Codice sessione</p>
     <p class="code">{session.code}</p>
@@ -269,6 +260,40 @@
     {/if}
   </div>
 {/if}
+
+{#if errorMessage}
+  <p class="error">{errorMessage}</p>
+{/if}
+
+<div class="open-sessions">
+  <div class="open-sessions-header">
+    <h3>Sessioni</h3>
+    <button class="primary" on:click={handleCreateSession} disabled={isLoading}>
+      {isLoading ? 'Creo…' : '+ Nuova sessione'}
+    </button>
+  </div>
+
+  {#if loadingOpen}
+    <p class="hint">Caricamento sessioni…</p>
+  {:else if openSessions.length === 0}
+    <p class="hint">Nessuna sessione trovata. Creane una nuova.</p>
+  {:else}
+    <div class="session-list">
+      {#each openSessions as s}
+        <div class="session-item" class:active={session?.id === s.id}>
+          <button class="session-item-main" on:click={() => handleRejoinSession(s)} disabled={isLoading || session?.id === s.id}>
+            <span class="session-code">{s.code}</span>
+            <span class="session-phase">{phaseLabel(s.phase)}</span>
+            <span class="session-date">{new Date(s.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+          </button>
+          <button class="delete-btn" on:click|stopPropagation={() => handleDeleteSession(s)} disabled={isLoading} title="Elimina sessione">
+            ✕
+          </button>
+        </div>
+      {/each}
+    </div>
+  {/if}
+</div>
 
 <style>
   .primary {
@@ -409,21 +434,21 @@
     color: #4b5563;
   }
 
-  /* Open sessions list */
-  .no-session {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
+  /* Open sessions list — always visible */
   .open-sessions {
     margin-top: 1.5rem;
     width: 100%;
-    max-width: 28rem;
+  }
+
+  .open-sessions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
 
   .open-sessions h3 {
-    margin: 0 0 0.15rem;
+    margin: 0;
     font-size: 1.05rem;
   }
 
@@ -437,20 +462,61 @@
   .session-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 0.7rem 1rem;
+    gap: 0;
     border-radius: 0.75rem;
     border: 1px solid rgba(148, 163, 184, 0.5);
     background: #f9fafb;
+    overflow: hidden;
+  }
+
+  .session-item.active {
+    border-color: #22c55e;
+    background: #f0fdf4;
+  }
+
+  .session-item-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: none;
+    border-radius: 0;
+    background: transparent;
     cursor: pointer;
     text-align: left;
     font-size: 0.92rem;
   }
 
-  .session-item:hover:enabled {
+  .session-item-main:disabled {
+    cursor: default;
+    opacity: 1;
+  }
+
+  .session-item-main:hover:enabled {
     background: #f1f5f9;
-    border-color: #22c55e;
+  }
+
+  .delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 100%;
+    min-height: 2.6rem;
+    padding: 0;
+    border: none;
+    border-left: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 0;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .delete-btn:hover:enabled {
+    background: #fef2f2;
+    color: #b91c1c;
   }
 
   .session-code {

@@ -157,6 +157,17 @@ export async function resetSession(sessionId: string): Promise<void> {
   await updateSessionPhase(sessionId, 1)
 }
 
+export async function deleteSession(sessionId: string): Promise<void> {
+  const { error: bErr } = await supabase.from('bowls').delete().eq('session_id', sessionId)
+  if (bErr) throw bErr
+
+  const { error: pErr } = await supabase.from('participants').delete().eq('session_id', sessionId)
+  if (pErr) throw pErr
+
+  const { error: sErr } = await supabase.from('sessions').delete().eq('id', sessionId)
+  if (sErr) throw sErr
+}
+
 export async function fetchOpenSessions(): Promise<Session[]> {
   const { data, error } = await supabase
     .from('sessions')
