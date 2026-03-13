@@ -174,6 +174,11 @@
     if (phase === 2) return 'Fase 2 – Scelte consapevoli'
     return 'Fase 3 – Confronto finale'
   }
+
+  function formatDiff(value: number): { text: string; isPositive: boolean } {
+    const text = value > 0 ? '+' + value : String(value)
+    return { text, isPositive: value > 0 }
+  }
 </script>
 
 {#if session}
@@ -248,7 +253,7 @@
               </span>
               <span>
                 {#if row.bowl1 && row.bowl2}
-                  {row.bowl1.total_co2_g - row.bowl2.total_co2_g}
+                  {@html (function() { const diff = formatDiff(row.bowl2.total_co2_g - row.bowl1.total_co2_g); const className = diff.isPositive ? 'diff-positive' : 'diff-negative'; return '<strong class="' + className + '">' + diff.text + '</strong>' })()}
                 {:else}
                   –
                 {/if}
@@ -535,5 +540,16 @@
     color: #9ca3af;
     font-size: 0.82rem;
     white-space: nowrap;
+  }
+
+  /* Difference colors */
+  :global(.diff-positive) {
+    color: #16a34a;
+    font-weight: 600;
+  }
+
+  :global(.diff-negative) {
+    color: #dc2626;
+    font-weight: 600;
   }
 </style>
