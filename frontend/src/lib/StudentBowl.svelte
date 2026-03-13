@@ -113,6 +113,7 @@
       <div class="pill-row">
         {#each BASES as base}
           <button type="button" class:selected={baseId === base.id} on:click={() => (baseId = base.id)}>
+            <img src="/ingredients/{base.image}" alt={base.label} class="ing-img" />
             {base.label}
             {#if liveSession.phase === 2}
               <span class="co2">{base.co2_g} gCO₂eq</span>
@@ -137,6 +138,7 @@
               selectedProteins = next
             }}
           >
+            <img src="/ingredients/{protein.image}" alt={protein.label} class="ing-img" />
             {protein.label}
             {#if liveSession.phase === 2}
               <span class="co2">{protein.co2_g} gCO₂eq</span>
@@ -148,13 +150,22 @@
 
     <section>
       <h4>4. Ingredienti extra</h4>
+      <p class="tiny">
+        {size === 'regular' ? 'Scegli fino a 2 ingredienti extra.' : 'Scegli fino a 3 ingredienti extra.'}
+      </p>
       <div class="pill-row">
         {#each EXTRAS as ing}
           <button
             type="button"
             class:selected={selectedExtras.includes(ing.id)}
-            on:click={() => (selectedExtras = toggleSelection(selectedExtras, ing.id))}
+            on:click={() => {
+              const next = toggleSelection(selectedExtras, ing.id)
+              const limit = size === 'regular' ? 2 : 3
+              if (next.length > limit) return
+              selectedExtras = next
+            }}
           >
+            <img src="/ingredients/{ing.image}" alt={ing.label} class="ing-img" />
             {ing.label}
             {#if liveSession.phase === 2}
               <span class="co2">{ing.co2_g} gCO₂eq</span>
@@ -294,6 +305,13 @@
   .pill-row button .co2 {
     font-size: 0.8rem;
     opacity: 0.9;
+  }
+
+  .ing-img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
   }
 
   .tiny {

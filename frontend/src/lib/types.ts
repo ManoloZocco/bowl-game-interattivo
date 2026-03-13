@@ -20,6 +20,7 @@ export interface Ingredient {
   category: string
   label: string
   co2_g: number
+  image: string
 }
 
 export interface Bowl {
