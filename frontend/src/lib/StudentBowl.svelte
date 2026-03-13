@@ -48,6 +48,11 @@
     return computeCo2(ids)
   }
 
+  function formatDiff(value: number): { text: string; isPositive: boolean } {
+    const text = value > 0 ? '+' + value : String(value)
+    return { text, isPositive: value > 0 }
+  }
+
   async function handleSaveBowl() {
     if (!baseId || selectedProteins.length === 0) {
       errorMessage = 'Scegli almeno una base e una proteina.'
@@ -220,8 +225,9 @@
           {#if summary.bowl1}
             <p class="meta">
               Differenza:
-              <strong>{(function() { const diff = summary.bowl2.total_co2_g - summary.bowl1.total_co2_g; return diff > 0 ? '+' + diff : diff })()}gCO₂eq</strong> ·
-              <strong>{(function() { const diff = (summary.bowl2.total_km - summary.bowl1.total_km).toFixed(1); return Number(diff) > 0 ? '+' + diff : diff })()} km</strong>
+              {@html (function() { const diffCo2 = formatDiff(summary.bowl2.total_co2_g - summary.bowl1.total_co2_g); const className = diffCo2.isPositive ? 'diff-positive' : 'diff-negative'; return '<strong class="' + className + '">' + diffCo2.text + 'gCO₂eq</strong>' })()}
+              ·
+              {@html (function() { const diffKm = formatDiff(Number((summary.bowl2.total_km - summary.bowl1.total_km).toFixed(1))); const className = diffKm.isPositive ? 'diff-positive' : 'diff-negative'; return '<strong class="' + className + '">' + diffKm.text + ' km</strong>' })()}
             </p>
           {/if}
         </section>
@@ -356,5 +362,16 @@
   .summary .meta {
     font-size: 0.95rem;
     color: #374151;
+  }
+
+  /* Difference colors */
+  :global(.diff-positive) {
+    color: #16a34a !important;
+    font-weight: 600;
+  }
+
+  :global(.diff-negative) {
+    color: #dc2626 !important;
+    font-weight: 600;
   }
 </style>
