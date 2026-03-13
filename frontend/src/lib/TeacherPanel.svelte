@@ -248,7 +248,7 @@
               </span>
               <span>
                 {#if row.bowl1 && row.bowl2}
-                  {row.bowl2.total_co2_g - row.bowl1.total_co2_g}
+                  {(function() { const diff = row.bowl2.total_co2_g - row.bowl1.total_co2_g; return diff > 0 ? '+' + diff : diff })()}
                 {:else}
                   –
                 {/if}

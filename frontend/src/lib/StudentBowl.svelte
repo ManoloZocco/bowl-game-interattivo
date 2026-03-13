@@ -220,8 +220,8 @@
           {#if summary.bowl1}
             <p class="meta">
               Differenza:
-              <strong>{summary.bowl2.total_co2_g - summary.bowl1.total_co2_g} gCO₂eq</strong> ·
-              <strong>{(summary.bowl2.total_km - summary.bowl1.total_km).toFixed(1)} km</strong>
+              <strong>{(function() { const diff = summary.bowl2.total_co2_g - summary.bowl1.total_co2_g; return diff > 0 ? '+' + diff : diff })()}gCO₂eq</strong> ·
+              <strong>{(function() { const diff = (summary.bowl2.total_km - summary.bowl1.total_km).toFixed(1); return Number(diff) > 0 ? '+' + diff : diff })()} km</strong>
             </p>
           {/if}
         </section>
