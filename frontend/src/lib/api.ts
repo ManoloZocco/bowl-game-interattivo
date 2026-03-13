@@ -157,6 +157,17 @@ export async function resetSession(sessionId: string): Promise<void> {
   await updateSessionPhase(sessionId, 1)
 }
 
+export async function fetchOpenSessions(): Promise<Session[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .in('phase', [1, 2, 3])
+    .order('created_at', { ascending: false })
+    .limit(10)
+  if (error) throw error
+  return (data ?? []) as Session[]
+}
+
 export async function fetchClassSummary(sessionId: string): Promise<ClassSummaryRow[]> {
   const { data: participants, error: pErr } = await supabase
     .from('participants')

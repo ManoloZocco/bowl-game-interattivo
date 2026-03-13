@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { createSession, countParticipants, fetchClassSummary, finalizeSessionAndAssignNumbers, resetSession, updateSessionPhase } from './api'
-  import type { ClassSummaryRow, Session } from './api'
+  import { onMount } from 'svelte'
+  import { createSession, countParticipants, fetchClassSummary, fetchOpenSessions, fetchSession, finalizeSessionAndAssignNumbers, resetSession, updateSessionPhase } from './api'
+  import type { ClassSummaryRow } from './api'
+  import type { Session } from './types'
 
   let session: Session | null = null
   let isLoading = false
@@ -9,11 +11,64 @@
   let summary: ClassSummaryRow[] = []
   let isFinalized = false
 
+  let openSessions: Session[] = []
+  let loadingOpen = false
+
+  const STORAGE_KEY = 'teacher_active_session_id'
+
+  function saveSessionToStorage(s: Session | null) {
+    if (s) {
+      localStorage.setItem(STORAGE_KEY, s.id)
+    } else {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }
+
+  async function restoreSession(sessionId: string) {
+    try {
+      isLoading = true
+      const s = await fetchSession(sessionId)
+      session = s
+      saveSessionToStorage(s)
+      participantCount = await countParticipants(s.id)
+      isFinalized = s.phase === 3
+      if (isFinalized) {
+        summary = await fetchClassSummary(s.id)
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+    } finally {
+      isLoading = false
+    }
+  }
+
+  async function loadOpenSessions() {
+    try {
+      loadingOpen = true
+      openSessions = await fetchOpenSessions()
+    } catch (error) {
+      console.error(error)
+    } finally {
+      loadingOpen = false
+    }
+  }
+
+  onMount(async () => {
+    const savedId = localStorage.getItem(STORAGE_KEY)
+    if (savedId) {
+      await restoreSession(savedId)
+    }
+    if (!session) {
+      await loadOpenSessions()
+    }
+  })
+
   async function handleCreateSession() {
     try {
       isLoading = true
       errorMessage = ''
       session = await createSession()
+      saveSessionToStorage(session)
       participantCount = 0
     } catch (error) {
       errorMessage = 'Errore nella creazione della sessione.'
@@ -21,6 +76,10 @@
     } finally {
       isLoading = false
     }
+  }
+
+  async function handleRejoinSession(s: Session) {
+    await restoreSession(s.id)
   }
 
   async function refreshCounts() {
@@ -48,10 +107,12 @@
   function handleNewSession() {
     if (!window.confirm('Vuoi creare una nuova sessione? La sessione corrente rimarrà nel database ma non sarà più visualizzata qui.')) return
     session = null
+    saveSessionToStorage(null)
     isFinalized = false
     participantCount = 0
     summary = []
     errorMessage = ''
+    loadOpenSessions()
   }
 
   async function handleResetSession() {
@@ -88,16 +149,42 @@
       isLoading = false
     }
   }
+
+  function phaseLabel(phase: number): string {
+    if (phase === 1) return 'Fase 1 – Scelte alla cieca'
+    if (phase === 2) return 'Fase 2 – Scelte consapevoli'
+    return 'Fase 3 – Confronto finale'
+  }
 </script>
 
 {#if !session}
-  <button class="primary" on:click={handleCreateSession} disabled={isLoading}>
-    {isLoading ? 'Creo la sessione…' : 'Crea nuova sessione'}
-  </button>
+  <div class="no-session">
+    <button class="primary" on:click={handleCreateSession} disabled={isLoading}>
+      {isLoading ? 'Creo la sessione…' : 'Crea nuova sessione'}
+    </button>
 
-  {#if errorMessage}
-    <p class="error">{errorMessage}</p>
-  {/if}
+    {#if errorMessage}
+      <p class="error">{errorMessage}</p>
+    {/if}
+
+    {#if openSessions.length > 0}
+      <div class="open-sessions">
+        <h3>Sessioni esistenti</h3>
+        <p class="hint">Rientra in una sessione già creata.</p>
+        <div class="session-list">
+          {#each openSessions as s}
+            <button class="session-item" on:click={() => handleRejoinSession(s)} disabled={isLoading}>
+              <span class="session-code">{s.code}</span>
+              <span class="session-phase">{phaseLabel(s.phase)}</span>
+              <span class="session-date">{new Date(s.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+            </button>
+          {/each}
+        </div>
+      </div>
+    {:else if loadingOpen}
+      <p class="hint" style="margin-top:1rem">Caricamento sessioni…</p>
+    {/if}
+  </div>
 {:else}
   <div class="session-card">
     <p class="label">Codice sessione</p>
@@ -320,5 +407,67 @@
   .header {
     font-weight: 600;
     color: #4b5563;
+  }
+
+  /* Open sessions list */
+  .no-session {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .open-sessions {
+    margin-top: 1.5rem;
+    width: 100%;
+    max-width: 28rem;
+  }
+
+  .open-sessions h3 {
+    margin: 0 0 0.15rem;
+    font-size: 1.05rem;
+  }
+
+  .session-list {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    background: #f9fafb;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.92rem;
+  }
+
+  .session-item:hover:enabled {
+    background: #f1f5f9;
+    border-color: #22c55e;
+  }
+
+  .session-code {
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    min-width: 5rem;
+  }
+
+  .session-phase {
+    flex: 1;
+    color: #4b5563;
+    font-size: 0.85rem;
+  }
+
+  .session-date {
+    color: #9ca3af;
+    font-size: 0.82rem;
+    white-space: nowrap;
   }
 </style>
