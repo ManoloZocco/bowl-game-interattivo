@@ -1,6 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+const envUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '/api'
+const supabaseUrl = envUrl.startsWith('http')
+  ? envUrl
+  : typeof window !== 'undefined'
+    ? `${window.location.origin}${envUrl.startsWith('/') ? '' : '/'}${envUrl}`
+    : 'http://localhost:8000'
+
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 if (!supabaseUrl || !supabaseAnonKey) {

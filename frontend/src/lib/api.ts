@@ -13,7 +13,7 @@ function generateSessionCode(length = 5): string {
 export async function createSession(): Promise<Session> {
   const code = generateSessionCode()
   const { data, error } = await supabase
-    .from('sessions')
+    .from('bowl_sessions')
     .insert({ code, phase: 1 })
     .select('*')
     .single()
@@ -26,13 +26,13 @@ export async function createSession(): Promise<Session> {
 }
 
 export async function getSessionByCode(code: string): Promise<Session | null> {
-  const { data, error } = await supabase.from('sessions').select('*').eq('code', code.trim().toUpperCase()).maybeSingle()
+  const { data, error } = await supabase.from('bowl_sessions').select('*').eq('code', code.trim().toUpperCase()).maybeSingle()
   if (error) throw error
   return (data ?? null) as Session | null
 }
 
 export async function createParticipant(sessionId: string): Promise<Participant> {
-  const { data, error } = await supabase.from('participants').insert({ session_id: sessionId }).select('*').single()
+  const { data, error } = await supabase.from('bowl_participants').insert({ session_id: sessionId }).select('*').single()
   if (error || !data) {
     throw error ?? new Error('Impossibile creare il partecipante')
   }
@@ -40,19 +40,19 @@ export async function createParticipant(sessionId: string): Promise<Participant>
 }
 
 export async function updateSessionPhase(sessionId: string, phase: SessionPhase): Promise<void> {
-  const { error } = await supabase.from('sessions').update({ phase }).eq('id', sessionId)
+  const { error } = await supabase.from('bowl_sessions').update({ phase }).eq('id', sessionId)
   if (error) throw error
 }
 
 export async function fetchSession(sessionId: string): Promise<Session> {
-  const { data, error } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
+  const { data, error } = await supabase.from('bowl_sessions').select('*').eq('id', sessionId).single()
   if (error || !data) throw error ?? new Error('Sessione non trovata')
   return data as Session
 }
 
 export async function countParticipants(sessionId: string): Promise<number> {
   const { count, error } = await supabase
-    .from('participants')
+    .from('bowl_participants')
     .select('*', { count: 'exact', head: true })
     .eq('session_id', sessionId)
   if (error) throw error
@@ -72,7 +72,7 @@ export interface BowlInput {
 }
 
 export async function saveBowl(input: BowlInput): Promise<Bowl> {
-  const { data, error } = await supabase.from('bowls').insert(input).select('*').single()
+  const { data, error } = await supabase.from('bowl_bowls').insert(input).select('*').single()
   if (error || !data) {
     throw error ?? new Error('Impossibile salvare la bowl')
   }
@@ -87,14 +87,14 @@ export interface ParticipantSummary {
 
 export async function fetchParticipantBowls(sessionId: string, participantId: string): Promise<ParticipantSummary> {
   const { data: participant, error: pErr } = await supabase
-    .from('participants')
+    .from('bowl_participants')
     .select('*')
     .eq('id', participantId)
     .single()
   if (pErr || !participant) throw pErr ?? new Error('Partecipante non trovato')
 
   const { data: bowls, error } = await supabase
-    .from('bowls')
+    .from('bowl_bowls')
     .select('*')
     .eq('session_id', sessionId)
     .eq('participant_id', participantId)
@@ -120,7 +120,7 @@ export interface ClassSummaryRow {
 
 export async function finalizeSessionAndAssignNumbers(sessionId: string): Promise<void> {
   const { data: participants, error } = await supabase
-    .from('participants')
+    .from('bowl_participants')
     .select('*')
     .eq('session_id', sessionId)
     .order('created_at', { ascending: true })
@@ -134,7 +134,7 @@ export async function finalizeSessionAndAssignNumbers(sessionId: string): Promis
   for (const p of participants as Participant[]) {
     // eslint-disable-next-line no-await-in-loop
     const { error: updErr } = await supabase
-      .from('participants')
+      .from('bowl_participants')
       .update({ number: index })
       .eq('id', p.id)
     if (updErr) throw updErr
@@ -146,13 +146,13 @@ export async function finalizeSessionAndAssignNumbers(sessionId: string): Promis
 
 export async function fetchClassSummary(sessionId: string): Promise<ClassSummaryRow[]> {
   const { data: participants, error: pErr } = await supabase
-    .from('participants')
+    .from('bowl_participants')
     .select('*')
     .eq('session_id', sessionId)
 
   if (pErr) throw pErr
 
-  const { data: bowls, error: bErr } = await supabase.from('bowls').select('*').eq('session_id', sessionId)
+  const { data: bowls, error: bErr } = await supabase.from('bowl_bowls').select('*').eq('session_id', sessionId)
   if (bErr) throw bErr
 
   const byParticipant = new Map<string, { bowl1?: Bowl; bowl2?: Bowl }>()
