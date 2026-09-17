@@ -275,6 +275,123 @@
 
   $: hasSelections = Boolean(baseId || selectedProteins.length > 0 || selectedExtras.length > 0)
 
+  function getBaseTheme(id: string) {
+    switch (id) {
+      case 'riso_nero':
+        return {
+          gradient: 'from-[#2e2638] via-[#1f1926] to-[#120e18]',
+          border: 'border-purple-900/50',
+          text: 'text-purple-100',
+          chipBg: 'bg-black/60',
+          pattern: '#a855f7'
+        }
+      case 'riso_integrale':
+        return {
+          gradient: 'from-[#d9caa7] via-[#c4b087] to-[#a89269]',
+          border: 'border-[#bfa97e]',
+          text: 'text-amber-950',
+          chipBg: 'bg-amber-100/90',
+          pattern: '#78350f'
+        }
+      case 'patate':
+        return {
+          gradient: 'from-[#fef08a] via-[#fde047] to-[#eab308]',
+          border: 'border-yellow-400',
+          text: 'text-amber-950',
+          chipBg: 'bg-yellow-50/90',
+          pattern: '#ca8a04'
+        }
+      case 'noodles':
+        return {
+          gradient: 'from-[#fef9c3] via-[#fef08a] to-[#facc15]',
+          border: 'border-amber-300',
+          text: 'text-amber-950',
+          chipBg: 'bg-amber-50/90',
+          pattern: '#d97706'
+        }
+      case 'riso_bianco':
+      default:
+        return {
+          gradient: 'from-[#ffffff] via-[#f1f5f9] to-[#cbd5e1]',
+          border: 'border-white/80',
+          text: 'text-emerald-950',
+          chipBg: 'bg-white/90',
+          pattern: '#94a3b8'
+        }
+    }
+  }
+
+  interface VisualTopping {
+    id: string
+    icon: string
+    label: string
+    type: 'protein' | 'extra'
+    slotClass: string
+    animClass: string
+    bgClass: string
+  }
+
+  $: visualToppings = (() => {
+    const pCount = currentProteinObjs.length
+    const eCount = currentExtraObjs.length
+    const items: VisualTopping[] = []
+    const anims = ['animate-drop-1', 'animate-drop-2', 'animate-drop-3', 'animate-drop-4', 'animate-drop-1', 'animate-drop-2']
+
+    const pBg = 'bg-white border-sky-200 shadow-md text-sky-950'
+    const eBg = 'bg-white border-amber-200 shadow-md text-amber-950'
+
+    if (pCount === 0) {
+      if (eCount === 1) {
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'left-0 right-0 mx-auto top-[12px] w-[46px] h-[46px] text-[24px]', animClass: anims[0], bgClass: eBg })
+      } else if (eCount === 2) {
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'left-[48px] top-[10px] w-[46px] h-[46px] text-[24px]', animClass: anims[0], bgClass: eBg })
+        items.push({ id: currentExtraObjs[1].id, icon: currentExtraObjs[1].icon ?? '🥗', label: currentExtraObjs[1].label, type: 'extra', slotClass: 'right-[48px] top-[10px] w-[46px] h-[46px] text-[24px]', animClass: anims[1], bgClass: eBg })
+      } else if (eCount >= 3) {
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'left-[46px] top-[6px] w-[46px] h-[46px] text-[24px]', animClass: anims[0], bgClass: eBg })
+        items.push({ id: currentExtraObjs[1].id, icon: currentExtraObjs[1].icon ?? '🥗', label: currentExtraObjs[1].label, type: 'extra', slotClass: 'right-[46px] top-[6px] w-[46px] h-[46px] text-[24px]', animClass: anims[1], bgClass: eBg })
+        items.push({ id: currentExtraObjs[2].id, icon: currentExtraObjs[2].icon ?? '🥗', label: currentExtraObjs[2].label, type: 'extra', slotClass: 'left-0 right-0 mx-auto top-[26px] w-[42px] h-[42px] text-[22px]', animClass: anims[2], bgClass: eBg })
+        if (eCount >= 4) items.push({ id: currentExtraObjs[3].id, icon: currentExtraObjs[3].icon ?? '🥗', label: currentExtraObjs[3].label, type: 'extra', slotClass: 'left-[14px] top-[24px] w-[40px] h-[40px] text-[20px]', animClass: anims[3], bgClass: eBg })
+        if (eCount >= 5) items.push({ id: currentExtraObjs[4].id, icon: currentExtraObjs[4].icon ?? '🥗', label: currentExtraObjs[4].label, type: 'extra', slotClass: 'right-[14px] top-[24px] w-[40px] h-[40px] text-[20px]', animClass: anims[4], bgClass: eBg })
+      }
+    } else if (pCount === 1) {
+      if (eCount === 0) {
+        items.push({ id: currentProteinObjs[0].id, icon: currentProteinObjs[0].icon ?? '🍗', label: currentProteinObjs[0].label, type: 'protein', slotClass: 'left-0 right-0 mx-auto top-[10px] w-[48px] h-[48px] text-[25px]', animClass: anims[0], bgClass: pBg })
+      } else if (eCount === 1) {
+        items.push({ id: currentProteinObjs[0].id, icon: currentProteinObjs[0].icon ?? '🍗', label: currentProteinObjs[0].label, type: 'protein', slotClass: 'left-[48px] top-[10px] w-[46px] h-[46px] text-[24px]', animClass: anims[0], bgClass: pBg })
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'right-[48px] top-[10px] w-[46px] h-[46px] text-[24px]', animClass: anims[1], bgClass: eBg })
+      } else if (eCount === 2) {
+        items.push({ id: currentProteinObjs[0].id, icon: currentProteinObjs[0].icon ?? '🍗', label: currentProteinObjs[0].label, type: 'protein', slotClass: 'left-[46px] top-[6px] w-[46px] h-[46px] text-[24px]', animClass: anims[0], bgClass: pBg })
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'right-[46px] top-[6px] w-[46px] h-[46px] text-[24px]', animClass: anims[1], bgClass: eBg })
+        items.push({ id: currentExtraObjs[1].id, icon: currentExtraObjs[1].icon ?? '🥗', label: currentExtraObjs[1].label, type: 'extra', slotClass: 'left-0 right-0 mx-auto top-[26px] w-[42px] h-[42px] text-[22px]', animClass: anims[2], bgClass: eBg })
+      } else if (eCount >= 3) {
+        items.push({ id: currentProteinObjs[0].id, icon: currentProteinObjs[0].icon ?? '🍗', label: currentProteinObjs[0].label, type: 'protein', slotClass: 'left-[56px] top-[6px] w-[44px] h-[44px] text-[23px]', animClass: anims[0], bgClass: pBg })
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'right-[56px] top-[6px] w-[44px] h-[44px] text-[23px]', animClass: anims[1], bgClass: eBg })
+        items.push({ id: currentExtraObjs[1].id, icon: currentExtraObjs[1].icon ?? '🥗', label: currentExtraObjs[1].label, type: 'extra', slotClass: 'left-[14px] top-[24px] w-[42px] h-[42px] text-[22px]', animClass: anims[2], bgClass: eBg })
+        items.push({ id: currentExtraObjs[2].id, icon: currentExtraObjs[2].icon ?? '🥗', label: currentExtraObjs[2].label, type: 'extra', slotClass: 'right-[14px] top-[24px] w-[42px] h-[42px] text-[22px]', animClass: anims[3], bgClass: eBg })
+        if (eCount >= 4) items.push({ id: currentExtraObjs[3].id, icon: currentExtraObjs[3].icon ?? '🥗', label: currentExtraObjs[3].label, type: 'extra', slotClass: 'left-0 right-0 mx-auto top-[28px] w-[40px] h-[40px] text-[20px]', animClass: anims[4], bgClass: eBg })
+      }
+    } else {
+      // 2 Proteins (Large)
+      items.push({ id: currentProteinObjs[0].id, icon: currentProteinObjs[0].icon ?? '🍗', label: currentProteinObjs[0].label, type: 'protein', slotClass: 'left-[56px] top-[6px] w-[46px] h-[46px] text-[24px]', animClass: anims[0], bgClass: pBg })
+      items.push({ id: currentProteinObjs[1].id, icon: currentProteinObjs[1].icon ?? '🍗', label: currentProteinObjs[1].label, type: 'protein', slotClass: 'right-[56px] top-[6px] w-[46px] h-[46px] text-[24px]', animClass: anims[1], bgClass: pBg })
+
+      if (eCount === 1) {
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'left-0 right-0 mx-auto top-[26px] w-[44px] h-[44px] text-[23px]', animClass: anims[2], bgClass: eBg })
+      } else if (eCount === 2) {
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'left-[14px] top-[24px] w-[42px] h-[42px] text-[22px]', animClass: anims[2], bgClass: eBg })
+        items.push({ id: currentExtraObjs[1].id, icon: currentExtraObjs[1].icon ?? '🥗', label: currentExtraObjs[1].label, type: 'extra', slotClass: 'right-[14px] top-[24px] w-[42px] h-[42px] text-[22px]', animClass: anims[3], bgClass: eBg })
+      } else if (eCount >= 3) {
+        items.push({ id: currentExtraObjs[0].id, icon: currentExtraObjs[0].icon ?? '🥗', label: currentExtraObjs[0].label, type: 'extra', slotClass: 'left-[14px] top-[24px] w-[42px] h-[42px] text-[22px]', animClass: anims[2], bgClass: eBg })
+        items.push({ id: currentExtraObjs[1].id, icon: currentExtraObjs[1].icon ?? '🥗', label: currentExtraObjs[1].label, type: 'extra', slotClass: 'right-[14px] top-[24px] w-[42px] h-[42px] text-[22px]', animClass: anims[3], bgClass: eBg })
+        items.push({ id: currentExtraObjs[2].id, icon: currentExtraObjs[2].icon ?? '🥗', label: currentExtraObjs[2].label, type: 'extra', slotClass: 'left-0 right-0 mx-auto top-[28px] w-[40px] h-[40px] text-[20px]', animClass: anims[4], bgClass: eBg })
+      }
+    }
+
+    return items
+  })()
+
+  $: overflowExtrasCount = Math.max(0, currentExtraObjs.length - visualToppings.filter((t) => t.type === 'extra').length)
+
   // Display items for waiting screen (fall back to summary.bowl1 if form is cleared)
   $: displayBase = currentBase ?? (summary?.bowl1?.base_id ? getIngredient(summary.bowl1.base_id) : undefined)
   $: displayProteins = currentProteinObjs.length > 0
@@ -501,50 +618,90 @@
         </div>
 
         <!-- Interactive Bowl Preview Canvas matching Stitch 01 -->
-        <div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-md overflow-hidden flex flex-col items-center justify-center min-h-[220px]">
+        <div class="relative bg-surface-container-lowest rounded-2xl p-space-md shadow-md overflow-hidden flex flex-col items-center justify-center min-h-[235px]">
           <div class="absolute -top-12 -right-12 w-36 h-36 bg-secondary-container/30 rounded-full blur-2xl pointer-events-none"></div>
           <div class="absolute -bottom-8 -left-8 w-32 h-32 bg-surface-container-high/40 rounded-full blur-xl pointer-events-none"></div>
 
-          <!-- Stylized Bowl with Floating Visual Food Layers -->
-          <div class="relative w-48 h-36 flex flex-col items-center justify-end">
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <!-- Protein layer -->
-              {#if currentProteinObjs[0]}
-                <div class="absolute top-8 left-6 w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-[22px] shadow-sm transform -rotate-6 transition-all duration-300">
-                  {currentProteinObjs[0].icon ?? '🍗'}
+          <!-- Stylized 3D Layered Bowl -->
+          <div class="relative w-[260px] h-[160px] flex items-end justify-center">
+            
+            <!-- Layer 1: Back Cavity & Interior Shadow (z-0) -->
+            <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 260 160" fill="none">
+              <ellipse cx="130" cy="54" rx="106" ry="26" fill="#0c271f" />
+              <ellipse cx="130" cy="55" rx="102" ry="23" fill="#143e32" />
+              <ellipse cx="130" cy="56" rx="98" ry="20" fill="#1b4d3e" />
+            </svg>
+
+            <!-- Layer 2: Base Bed Layer inside cavity (z-10) -->
+            {#if currentBase}
+              {@const theme = getBaseTheme(currentBase.id)}
+              <div class="absolute top-[40px] left-[32px] right-[32px] h-[40px] rounded-[50%] bg-gradient-to-b {theme.gradient} shadow-inner border {theme.border} flex items-center justify-center z-10 animate-base overflow-hidden">
+                <div class="absolute inset-0 opacity-25 bg-[radial-gradient({theme.pattern}_1.5px,transparent_1.5px)] [background-size:6px_6px]"></div>
+                {#if visualToppings.length === 0}
+                  <span class="relative text-[11px] font-bold {theme.text} tracking-wide flex items-center gap-1 bg-white/95 px-3 py-0.5 rounded-full shadow-sm">
+                    {currentBase.icon ?? '🍚'} {currentBase.label}
+                  </span>
+                {/if}
+              </div>
+            {/if}
+
+            <!-- Layer 3: Empty State Orbs OR Active Ingredient Toppings (z-30) -->
+            <div class="absolute inset-0 pointer-events-none z-30">
+              {#if !currentBase && visualToppings.length === 0}
+                <!-- Ghost floating items showing what's possible with gentle pulse -->
+                <div class="absolute top-2 left-9 w-11 h-11 rounded-full bg-emerald-50/95 border-2 border-dashed border-emerald-300 flex items-center justify-center text-[22px] shadow-sm animate-ghost-1">
+                  🍚
                 </div>
-              {/if}
-              <!-- Extra 1 -->
-              {#if currentExtraObjs[0]}
-                <div class="absolute top-7 right-6 w-11 h-11 rounded-full bg-secondary-container flex items-center justify-center text-[20px] shadow-sm transform rotate-12 transition-all duration-300">
-                  {currentExtraObjs[0].icon ?? '🥗'}
+                <div class="absolute -top-2 left-[108px] w-12 h-12 rounded-full bg-emerald-50/95 border-2 border-dashed border-emerald-400 flex items-center justify-center text-[26px] shadow-sm animate-ghost-2">
+                  🐟
                 </div>
-              {/if}
-              <!-- Extra 2 -->
-              {#if currentExtraObjs[1]}
-                <div class="absolute top-14 right-12 w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-[18px] shadow-sm transform -rotate-12 transition-all duration-300">
-                  {currentExtraObjs[1].icon ?? '🍅'}
+                <div class="absolute top-2 right-9 w-11 h-11 rounded-full bg-emerald-50/95 border-2 border-dashed border-emerald-300 flex items-center justify-center text-[22px] shadow-sm animate-ghost-3">
+                  🥑
                 </div>
-              {/if}
-              <!-- Base layer -->
-              {#if currentBase}
-                <div class="absolute bottom-6 w-28 h-10 rounded-full bg-surface-container-highest flex items-center justify-center shadow-inner text-[15px] text-on-surface-variant font-label-sm font-semibold">
-                  {currentBase.icon ?? '🍚'} {currentBase.label}
+                <!-- Clean floating invitation badge -->
+                <div class="absolute top-[46px] left-0 right-0 mx-auto w-max px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md text-emerald-950 border border-emerald-200 text-[11px] font-bold tracking-wide shadow-md flex items-center gap-1.5 animate-bounce whitespace-nowrap" style="animation-duration: 2.5s;">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Tocca gli ingredienti sotto</span>
                 </div>
               {:else}
-                <div class="absolute bottom-7 px-3 py-1 rounded-full bg-surface-container-highest/80 border border-dashed border-outline-variant text-[12px] text-on-surface-variant font-label-sm">
-                  Ciotola vuota
-                </div>
+                <!-- Render animated toppings inside the bowl -->
+                {#each visualToppings as topping (topping.id)}
+                  <div
+                    class="absolute {topping.slotClass} {topping.animClass} rounded-full {topping.bgClass} flex items-center justify-center border transition-transform"
+                    title={topping.label}
+                  >
+                    <span>{topping.icon}</span>
+                  </div>
+                {/each}
+
+                <!-- Overflow extras badge if > max slots -->
+                {#if overflowExtrasCount > 0}
+                  <div class="absolute -top-2 left-0 right-0 mx-auto w-max px-2.5 py-0.5 rounded-full bg-emerald-900 text-white text-[10px] font-bold shadow-md animate-drop-2 whitespace-nowrap">
+                    +{overflowExtrasCount} {overflowExtrasCount === 1 ? 'altro extra' : 'altri extra'}
+                  </div>
+                {/if}
               {/if}
             </div>
 
-            <!-- Ceramic Bowl Silhouette SVG -->
-            <svg class="w-48 h-20 drop-shadow-md text-primary-container" fill="none" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="100" cy="18" fill="#E2E7FF" fill-opacity="0.8" rx="90" ry="14"></ellipse>
-              <path d="M10 18 C18 68, 62 86, 100 86 C138 86, 182 68, 190 18 Z" fill="currentColor"></path>
-              <path d="M20 22 C30 60, 68 76, 100 76 C132 76, 170 60, 180 22 Z" fill="#245A4B" fill-opacity="0.6"></path>
-              <ellipse cx="100" cy="85" fill="#002117" fill-opacity="0.2" rx="38" ry="4"></ellipse>
+            <!-- Layer 4: Front Ceramic Wall & Rim with Specular Gloss & Shadow (z-20) -->
+            <svg class="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 260 160" fill="none">
+              <!-- Table shadow -->
+              <ellipse cx="130" cy="154" rx="74" ry="5.5" fill="#002117" fill-opacity="0.22" />
+              <!-- Ceramic Body -->
+              <path d="M 24 54 C 26 106, 76 150, 130 150 C 184 150, 234 106, 236 54 C 204 69, 56 69, 24 54 Z" fill="url(#bowlWallGradLive)" />
+              <!-- Front Lip Highlight -->
+              <path d="M 25 55 C 56 69, 204 69, 235 55" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" />
+              <!-- Glaze Reflection -->
+              <path d="M 48 84 C 70 125, 117 144, 130 144" stroke="rgba(255,255,255,0.16)" stroke-width="3" stroke-linecap="round" />
+              <defs>
+                <linearGradient id="bowlWallGradLive" x1="130" y1="54" x2="130" y2="150" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#245a4a" />
+                  <stop offset="50%" stop-color="#1b4d3e" />
+                  <stop offset="100%" stop-color="#0f3328" />
+                </linearGradient>
+              </defs>
             </svg>
+
           </div>
 
           <!-- Recipe Mini Summary Chips -->
@@ -568,8 +725,8 @@
               </span>
             {/if}
             {#if !currentBase && currentProteinObjs.length === 0 && selectedExtras.length === 0}
-              <span class="text-on-surface-variant font-label-sm text-label-sm opacity-70">
-                Seleziona gli ingredienti qui sotto per comporla
+              <span class="text-on-surface-variant/60 font-label-sm text-label-sm italic">
+                Ciotola vuota
               </span>
             {/if}
           </div>
@@ -1504,3 +1661,68 @@
     </div>
   </nav>
 </div>
+
+<style>
+  @keyframes dropInBounce {
+    0% {
+      transform: translateY(-50px) scale(0.3);
+      opacity: 0;
+    }
+    65% {
+      transform: translateY(6px) scale(1.1);
+      opacity: 1;
+    }
+    82% {
+      transform: translateY(-2px) scale(0.96);
+    }
+    100% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes floatBob1 {
+    0% { transform: translateY(0px) rotate(-6deg); }
+    100% { transform: translateY(-7px) rotate(-2deg); }
+  }
+  @keyframes floatBob2 {
+    0% { transform: translateY(0px) rotate(6deg); }
+    100% { transform: translateY(-8px) rotate(10deg); }
+  }
+  @keyframes floatBob3 {
+    0% { transform: translateY(0px) rotate(-4deg); }
+    100% { transform: translateY(-6px) rotate(-1deg); }
+  }
+  @keyframes floatBob4 {
+    0% { transform: translateY(0px) rotate(4deg); }
+    100% { transform: translateY(-7px) rotate(7deg); }
+  }
+
+  @keyframes ghostPulse {
+    0%, 100% { opacity: 0.35; transform: translateY(0px) scale(0.94); }
+    50% { opacity: 0.85; transform: translateY(-8px) scale(1.06); }
+  }
+
+  @keyframes basePop {
+    0% { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  :global(.animate-drop-1) {
+    animation: dropInBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatBob1 3.2s ease-in-out 0.45s infinite alternate;
+  }
+  :global(.animate-drop-2) {
+    animation: dropInBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatBob2 3.6s ease-in-out 0.5s infinite alternate;
+  }
+  :global(.animate-drop-3) {
+    animation: dropInBounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatBob3 3s ease-in-out 0.55s infinite alternate;
+  }
+  :global(.animate-drop-4) {
+    animation: dropInBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatBob4 3.4s ease-in-out 0.6s infinite alternate;
+  }
+
+  :global(.animate-ghost-1) { animation: ghostPulse 2.6s ease-in-out infinite; }
+  :global(.animate-ghost-2) { animation: ghostPulse 2.6s ease-in-out 0.5s infinite; }
+  :global(.animate-ghost-3) { animation: ghostPulse 2.6s ease-in-out 1s infinite; }
+  :global(.animate-base) { animation: basePop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+</style>
