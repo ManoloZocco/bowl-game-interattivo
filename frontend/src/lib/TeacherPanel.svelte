@@ -6,9 +6,12 @@
     fetchClassSummary,
     finalizeSessionAndAssignNumbers,
     updateSessionPhase,
-    fetchSession
+    fetchSession,
+    fetchAllSessions,
+    deleteSession,
+    fetchSessionsWithStats
   } from './api'
-  import type { ClassSummaryRow, Session } from './api'
+  import type { ClassSummaryRow, Session, SessionStats } from './api'
   import { getIngredient } from './ingredients'
 
   const dispatch = createEventDispatcher<{ exit: void }>()
@@ -30,8 +33,21 @@
   let isFinalized = initialSession && initialSession.id !== 'demo-session' ? false : true
   let pollHandle: number | null = null
 
-  // UI state
+  // Modals & Navigation
   let showQrModal = false
+  let showSessionsModal = false
+  let showComparisonModal = false
+
+  // Multi-Session Management state
+  let allSessionStats: SessionStats[] = []
+  let isSessionsLoading = false
+  let sessionActionError = ''
+  let sessionSearch = ''
+  let sessionFilter: 'all' | 'active' | 'closed' = 'all'
+  let selectedSessionIdsForComparison: string[] = []
+  let sessionToDelete: Session | null = null
+
+  // UI state
   let selectedStudentIndex = 0
   let sortBy: 'delta' | 'number' = 'delta'
   let useDemoData = !initialSession || initialSession.id === 'demo-session'
@@ -68,6 +84,174 @@
     { number: 28, b1: 2750, b2: 690, delta: '-75%', text: 'Fagioli, Patate', base1: 'riso_bianco', p1: 'suino', base2: 'patate', p2: 'ceci' }
   ]
 
+  const DEMO_SESSION_STATS: SessionStats = {
+    session: {
+      id: 'demo-session',
+      code: 'NMLHM (Demo)',
+      phase: 3,
+      created_at: new Date().toISOString()
+    },
+    participantCount: 28,
+    bowl1Count: 28,
+    bowl2Count: 28,
+    completedCount: 28,
+    avgCo2Bowl1: 2450,
+    avgCo2Bowl2: 780,
+    avgCo2Saved: 1670,
+    percentReduction: 68,
+    totalKgSaved: 46.8,
+    totalKmSaved: 360.0,
+    eatLancetPassCount: 7,
+    eatLancetPassPercent: 25,
+    topProteinFase1: 'salmone',
+    topProteinFase2: 'ceci'
+  }
+
+  function formatDate(isoString: string): string {
+    if (!isoString) return ''
+    try {
+      const d = new Date(isoString)
+      return d.toLocaleDateString('it-IT', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch {
+      return isoString
+    }
+  }
+
+  async function loadSessions() {
+    isSessionsLoading = true
+    sessionActionError = ''
+    try {
+      const realStats = await fetchSessionsWithStats()
+      allSessionStats = realStats
+    } catch (err) {
+      console.error(err)
+      sessionActionError = 'Errore nel caricamento delle sessioni.'
+    } finally {
+      isSessionsLoading = false
+    }
+  }
+
+  function openSessionsManager() {
+    showSessionsModal = true
+    loadSessions()
+  }
+
+  function selectSession(s: Session) {
+    session = s
+    selectedStudentIndex = 0
+    useDemoData = s.id === 'demo-session'
+    isFinalized = s.phase === 3
+    showSessionsModal = false
+    showComparisonModal = false
+    refreshData()
+  }
+
+  function switchToDemoSession() {
+    session = {
+      id: 'demo-session',
+      code: 'NMLHM',
+      phase: 3,
+      created_at: new Date().toISOString()
+    }
+    useDemoData = true
+    isFinalized = true
+    participantCount = 28
+    summary = []
+    selectedStudentIndex = 0
+    showSessionsModal = false
+    showComparisonModal = false
+  }
+
+  async function handleCloseSessionDirect(sessionId: string) {
+    try {
+      isSessionsLoading = true
+      sessionActionError = ''
+      await finalizeSessionAndAssignNumbers(sessionId)
+      if (session.id === sessionId) {
+        session = { ...session, phase: 3 }
+        isFinalized = true
+        await refreshData()
+      }
+      await loadSessions()
+    } catch (err) {
+      console.error(err)
+      sessionActionError = 'Errore durante la conclusione della sessione.'
+    } finally {
+      isSessionsLoading = false
+    }
+  }
+
+  async function handleReopenSessionDirect(sessionId: string) {
+    try {
+      isSessionsLoading = true
+      sessionActionError = ''
+      await updateSessionPhase(sessionId, 2)
+      if (session.id === sessionId) {
+        session = { ...session, phase: 2 }
+        isFinalized = false
+        await refreshData()
+      }
+      await loadSessions()
+    } catch (err) {
+      console.error(err)
+      sessionActionError = 'Errore durante la riapertura della sessione.'
+    } finally {
+      isSessionsLoading = false
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!sessionToDelete) return
+    try {
+      isSessionsLoading = true
+      sessionActionError = ''
+      await deleteSession(sessionToDelete.id)
+      selectedSessionIdsForComparison = selectedSessionIdsForComparison.filter(
+        (id) => id !== sessionToDelete?.id
+      )
+      if (session.id === sessionToDelete.id) {
+        switchToDemoSession()
+      }
+      sessionToDelete = null
+      await loadSessions()
+    } catch (err) {
+      console.error(err)
+      sessionActionError = "Errore durante l'eliminazione della sessione."
+    } finally {
+      isSessionsLoading = false
+    }
+  }
+
+  function toggleCompareSelection(id: string) {
+    if (selectedSessionIdsForComparison.includes(id)) {
+      selectedSessionIdsForComparison = selectedSessionIdsForComparison.filter((x) => x !== id)
+    } else {
+      selectedSessionIdsForComparison = [...selectedSessionIdsForComparison, id]
+    }
+  }
+
+  async function openComparison() {
+    showSessionsModal = false
+    if (allSessionStats.length === 0) {
+      await loadSessions()
+    }
+    if (selectedSessionIdsForComparison.length < 2) {
+      const real = allSessionStats.map((s) => s.session.id)
+      if (real.length > 0) {
+        selectedSessionIdsForComparison = ['demo-session', real[0]]
+      } else {
+        selectedSessionIdsForComparison = ['demo-session']
+      }
+    }
+    showComparisonModal = true
+  }
+
   async function handleCreateSession() {
     try {
       isLoading = true
@@ -77,6 +261,8 @@
       summary = []
       useDemoData = false
       isFinalized = false
+      selectedStudentIndex = 0
+      loadSessions()
     } catch (error) {
       errorMessage = 'Errore nella creazione della sessione.'
       console.error(error)
@@ -84,6 +270,7 @@
       isLoading = false
     }
   }
+
 
   async function refreshData() {
     if (!session || session.id === 'demo-session') return
@@ -108,9 +295,18 @@
     }
   }
 
-  onMount(() => {
+  onMount(async () => {
     refreshData()
     pollHandle = window.setInterval(refreshData, 4000)
+
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search)
+      if (p.get('modal') === 'sessions') {
+        openSessionsManager()
+      } else if (p.get('modal') === 'compare' || p.get('modal') === 'comparison') {
+        await openComparison()
+      }
+    }
   })
 
   onDestroy(() => {
@@ -230,6 +426,43 @@
 
   $: selectedStudent = sortedStudents[selectedStudentIndex] ?? sortedStudents[0]
 
+  $: sessionsForListing = [DEMO_SESSION_STATS, ...allSessionStats]
+
+  $: filteredSessions = sessionsForListing.filter((s) => {
+    const matchesSearch =
+      sessionSearch.trim() === '' ||
+      s.session.code.toLowerCase().includes(sessionSearch.toLowerCase())
+    if (!matchesSearch) return false
+
+    if (sessionFilter === 'active') return s.session.phase === 1 || s.session.phase === 2
+    if (sessionFilter === 'closed') return s.session.phase === 3
+    return true
+  })
+
+  $: comparedSessionsList = sessionsForListing.filter((s) =>
+    selectedSessionIdsForComparison.includes(s.session.id)
+  )
+
+  $: leaderSession = comparedSessionsList
+    .filter((s) => s.completedCount > 0 && s.percentReduction > 0)
+    .reduce<SessionStats | null>((best, curr) => {
+      if (!best) return curr
+      return curr.percentReduction > best.percentReduction ? curr : best
+    }, null)
+
+  $: totalComparisonKgSaved = Number(
+    comparedSessionsList.reduce((sum, s) => sum + s.totalKgSaved, 0).toFixed(1)
+  )
+
+  $: totalComparisonKmSaved = Number(
+    comparedSessionsList.reduce((sum, s) => sum + s.totalKmSaved, 0).toFixed(1)
+  )
+
+  $: totalComparisonStudents = comparedSessionsList.reduce(
+    (sum, s) => sum + s.participantCount,
+    0
+  )
+
   $: joinUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/bowl/?code=${session.code}`
@@ -262,9 +495,25 @@
         </button>
         <button
           type="button"
-          class="px-space-md py-space-sm transition-colors bg-secondary-container text-on-secondary-container font-label-lg rounded-xl"
+          class="px-space-md py-space-sm transition-colors bg-secondary-container text-on-secondary-container font-label-lg rounded-xl font-bold"
         >
           Docente Projector
+        </button>
+        <button
+          type="button"
+          on:click={openSessionsManager}
+          class="px-space-md py-space-sm rounded-xl font-label-lg text-label-lg text-primary hover:bg-surface-container transition-colors flex items-center gap-1.5 font-bold"
+        >
+          <span class="material-symbols-outlined text-[18px]">folder_shared</span>
+          <span>Gestione Sessioni</span>
+        </button>
+        <button
+          type="button"
+          on:click={openComparison}
+          class="px-space-md py-space-sm rounded-xl font-label-lg text-label-lg text-secondary hover:bg-surface-container transition-colors flex items-center gap-1.5 font-bold"
+        >
+          <span class="material-symbols-outlined text-[18px]">compare_arrows</span>
+          <span>Confronta Classi</span>
         </button>
         <button
           type="button"
@@ -273,18 +522,14 @@
         >
           Student Experience
         </button>
-        <a
-          href="#metodologia"
-          class="px-space-md py-space-sm rounded-xl font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
-        >
-          Metodologia LCA
-        </a>
       </nav>
 
       <div class="flex items-center gap-space-md">
         <div class="hidden sm:flex items-center gap-space-xs px-space-sm py-space-xs rounded-full bg-surface-container-lowest shadow-[0_1px_3px_0_rgba(27,77,62,0.04)]">
-          <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-          <span class="font-label-sm text-label-sm text-on-surface-variant">Sessione Live Attiva</span>
+          <span class="w-2 h-2 rounded-full {session.phase === 3 ? 'bg-secondary-fixed-dim' : 'bg-secondary animate-pulse'}"></span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">
+            {session.phase === 3 ? 'Sessione Conclusa' : 'Sessione Live Attiva'}
+          </span>
         </div>
         <button
           type="button"
@@ -310,9 +555,9 @@
             <div class="flex flex-col">
               <div class="flex items-center gap-space-xs">
                 <span class="font-headline-sm text-headline-sm text-primary tracking-tight">Ecodynamics Classroom Monitor</span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold animate-pulse">
-                  <span class="w-2 h-2 rounded-full bg-secondary"></span>
-                  SESSIONE ATTIVA
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full {session.phase === 3 ? 'bg-surface-container text-on-surface-variant' : 'bg-secondary-container text-on-secondary-container animate-pulse'} font-label-sm text-label-sm font-bold">
+                  <span class="w-2 h-2 rounded-full {session.phase === 3 ? 'bg-on-surface-variant' : 'bg-secondary'}"></span>
+                  {session.phase === 3 ? 'SESSIONE CONCLUSA' : 'SESSIONE ATTIVA'}
                 </span>
               </div>
               <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
@@ -321,22 +566,44 @@
             </div>
           </div>
 
-          <!-- Class PIN & Fullscreen QR button -->
-          <div class="flex items-center gap-space-sm bg-surface-container-lowest p-space-xs rounded-xl shadow-sm">
+          <!-- Class PIN & Actions: Switcher, Compare, Fullscreen QR -->
+          <div class="flex items-center gap-space-sm bg-surface-container-lowest p-space-xs rounded-xl shadow-sm flex-wrap justify-center">
             <div class="flex items-center px-space-md py-space-xs bg-primary text-on-primary rounded-lg">
               <span class="font-label-sm text-label-sm tracking-widest text-primary-fixed mr-2 uppercase">PIN CLASSE:</span>
               <span class="font-headline-md text-headline-md tracking-widest font-extrabold text-secondary-fixed select-all">
                 {session.code}
               </span>
             </div>
+
+            <button
+              type="button"
+              on:click={openSessionsManager}
+              class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors shadow-sm"
+              title="Gestione e cambio sessioni didattiche"
+            >
+              <span class="material-symbols-outlined text-[20px] text-primary">folder_open</span>
+              <span class="hidden sm:inline font-bold">Sessioni</span>
+            </button>
+
+            <button
+              type="button"
+              on:click={openComparison}
+              class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors shadow-sm"
+              title="Confronta risultati con altre classi"
+            >
+              <span class="material-symbols-outlined text-[20px] text-secondary">compare_arrows</span>
+              <span class="hidden sm:inline font-bold">Confronta</span>
+            </button>
+
             <button
               type="button"
               on:click={() => (showQrModal = true)}
               class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors shadow-sm"
               id="qr-toggle-btn"
+              title="Mostra QR a schermo intero"
             >
               <span class="material-symbols-outlined text-[20px] text-primary">qr_code_scanner</span>
-              <span class="hidden sm:inline">Mostra QR Schermo Intero</span>
+              <span class="hidden sm:inline">QR Code</span>
             </button>
           </div>
 
@@ -749,7 +1016,23 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-space-sm">
+          <div class="flex items-center gap-space-sm flex-wrap">
+            <button
+              type="button"
+              on:click={openSessionsManager}
+              class="px-space-md py-space-sm rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-2 shadow-sm"
+            >
+              <span class="material-symbols-outlined text-[20px] text-primary">folder_open</span>
+              <span>Tutte le Sessioni</span>
+            </button>
+            <button
+              type="button"
+              on:click={openComparison}
+              class="px-space-md py-space-sm rounded-xl bg-secondary-container hover:bg-secondary-fixed text-on-secondary-container font-label-lg text-label-lg transition-colors flex items-center gap-2 shadow-sm font-bold"
+            >
+              <span class="material-symbols-outlined text-[20px]">compare_arrows</span>
+              <span>Confronta Classi</span>
+            </button>
             <button
               type="button"
               on:click={() => window.print()}
@@ -763,8 +1046,8 @@
               on:click={handleCreateSession}
               class="px-space-md py-space-sm rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg transition-colors flex items-center gap-2 shadow-md"
             >
-              <span class="material-symbols-outlined text-[20px] text-secondary-fixed">replay</span>
-              <span>Avvia Nuova Sessione</span>
+              <span class="material-symbols-outlined text-[20px] text-secondary-fixed">add_circle</span>
+              <span>Nuova Sessione</span>
             </button>
           </div>
         </div>
@@ -805,6 +1088,650 @@
               <div class="mt-2 px-space-md py-space-xs rounded-xl bg-primary text-secondary-fixed font-metric-display text-metric-display tracking-widest font-extrabold shadow-md">
                 {session.code}
               </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      <!-- Modale 1: Gestione Sessioni (Elenco, Cambio, Conclusione, Eliminazione) -->
+      {#if showSessionsModal}
+        <div class="fixed inset-0 z-50 bg-on-surface/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6" id="sessions-modal">
+          <div class="bg-surface max-w-5xl w-full max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-outline-variant/30 text-on-surface">
+            <!-- Header -->
+            <div class="p-5 sm:p-6 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary text-secondary-fixed flex items-center justify-center shadow-sm">
+                  <span class="material-symbols-outlined text-[24px]">folder_shared</span>
+                </div>
+                <div>
+                  <h2 class="font-headline-sm text-headline-sm font-bold text-primary">Gestione Sessioni e Classi</h2>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">
+                    Visualizza lo storico, cambia la sessione attiva sul proiettore o seleziona più classi da confrontare.
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                {#if selectedSessionIdsForComparison.length >= 2}
+                  <button
+                    type="button"
+                    on:click={openComparison}
+                    class="px-4 py-2 rounded-xl bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-secondary/90 transition-all flex items-center gap-1.5 shadow-sm animate-bounce"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">compare_arrows</span>
+                    <span>Confronta ({selectedSessionIdsForComparison.length})</span>
+                  </button>
+                {/if}
+                <button
+                  type="button"
+                  on:click={() => (showSessionsModal = false)}
+                  class="p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[24px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Controls & Search Toolbar -->
+            <div class="p-4 sm:p-5 bg-surface-container-lowest border-b border-outline-variant/20 flex flex-col md:flex-row items-center justify-between gap-3">
+              <!-- Search & Filter tabs -->
+              <div class="flex items-center gap-3 w-full md:w-auto flex-wrap">
+                <div class="relative w-full sm:w-64">
+                  <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[20px]">search</span>
+                  <input
+                    type="text"
+                    bind:value={sessionSearch}
+                    placeholder="Cerca PIN classe..."
+                    class="w-full pl-9 pr-3 py-2 rounded-xl bg-surface-container-low border border-outline-variant/40 text-on-surface font-label-md text-label-md focus:outline-none focus:ring-2 focus:ring-primary uppercase tracking-wider font-bold placeholder:normal-case placeholder:font-normal"
+                  />
+                </div>
+
+                <div class="flex items-center p-1 rounded-xl bg-surface-container-low">
+                  <button
+                    type="button"
+                    on:click={() => (sessionFilter = 'all')}
+                    class="px-3 py-1.5 rounded-lg font-label-sm text-label-sm font-semibold transition-all {sessionFilter === 'all' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}"
+                  >
+                    Tutte ({sessionsForListing.length})
+                  </button>
+                  <button
+                    type="button"
+                    on:click={() => (sessionFilter = 'active')}
+                    class="px-3 py-1.5 rounded-lg font-label-sm text-label-sm font-semibold transition-all {sessionFilter === 'active' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}"
+                  >
+                    In corso ({sessionsForListing.filter((s) => s.session.phase < 3).length})
+                  </button>
+                  <button
+                    type="button"
+                    on:click={() => (sessionFilter = 'closed')}
+                    class="px-3 py-1.5 rounded-lg font-label-sm text-label-sm font-semibold transition-all {sessionFilter === 'closed' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}"
+                  >
+                    Concluse ({sessionsForListing.filter((s) => s.session.phase === 3).length})
+                  </button>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                <button
+                  type="button"
+                  on:click={loadSessions}
+                  class="p-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
+                  title="Ricarica elenco sessioni"
+                >
+                  <span class="material-symbols-outlined text-[20px] {isSessionsLoading ? 'animate-spin' : ''}">refresh</span>
+                </button>
+
+                <button
+                  type="button"
+                  on:click={() => {
+                    showSessionsModal = false
+                    handleCreateSession()
+                  }}
+                  class="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-label-md text-label-md font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  <span class="material-symbols-outlined text-[18px] text-secondary-fixed">add</span>
+                  <span>Nuova Classe</span>
+                </button>
+              </div>
+            </div>
+
+            {#if sessionActionError}
+              <div class="px-5 py-2.5 bg-error-container text-on-error-container text-body-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">error</span>
+                <span>{sessionActionError}</span>
+              </div>
+            {/if}
+
+            <!-- Sessions List -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-3">
+              {#if filteredSessions.length === 0}
+                <div class="py-12 text-center text-on-surface-variant flex flex-col items-center justify-center p-8 rounded-xl bg-surface-container-low border border-dashed border-outline-variant">
+                  <span class="material-symbols-outlined text-[48px] text-primary/40 mb-2">folder_off</span>
+                  <p class="font-headline-sm text-headline-sm font-bold text-primary">Nessuna sessione trovata</p>
+                  <p class="font-body-md text-body-md mt-1">Crea una nuova classe per iniziare una prova interattiva.</p>
+                </div>
+              {:else}
+                {#each filteredSessions as stat (stat.session.id)}
+                  {@const isActiveSession = session.id === stat.session.id}
+                  {@const isCheckedForCompare = selectedSessionIdsForComparison.includes(stat.session.id)}
+                  <div
+                    class="p-4 rounded-xl border transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 {isActiveSession ? 'bg-secondary-container/20 border-secondary ring-1 ring-secondary' : 'bg-surface-container-lowest border-outline-variant/40 hover:border-primary/40 shadow-sm'}"
+                  >
+                    <!-- Checkbox & PIN info -->
+                    <div class="flex items-center gap-3">
+                      <label class="flex items-center cursor-pointer p-1" title="Seleziona per confronto">
+                        <input
+                          type="checkbox"
+                          checked={isCheckedForCompare}
+                          on:change={() => toggleCompareSelection(stat.session.id)}
+                          class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary cursor-pointer"
+                        />
+                      </label>
+
+                      <div class="flex flex-col">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="font-mono text-xl font-black text-primary tracking-widest bg-surface-container-low px-2.5 py-1 rounded-lg">
+                            {stat.session.code}
+                          </span>
+                          {#if isActiveSession}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm font-bold shadow-sm animate-pulse">
+                              <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                              ATTIVA ORA SULLA LIM
+                            </span>
+                          {/if}
+                          {#if stat.session.phase === 1}
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-label-sm text-label-sm font-semibold">
+                              Fase 1: Scelta alla Cieca
+                            </span>
+                          {:else if stat.session.phase === 2}
+                            <span class="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 font-label-sm text-label-sm font-semibold">
+                              Fase 2: Consapevole
+                            </span>
+                          {:else}
+                            <span class="px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
+                              Fase 3: Conclusa / Risultati
+                            </span>
+                          {/if}
+                        </div>
+                        <span class="font-label-sm text-label-sm text-on-surface-variant mt-1">
+                          Creata il {formatDate(stat.session.created_at)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Stats pills -->
+                    <div class="flex items-center gap-3 flex-wrap font-label-sm text-label-sm text-on-surface-variant">
+                      <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low">
+                        <span class="material-symbols-outlined text-[16px] text-primary">groups</span>
+                        <span class="font-bold text-on-surface">{stat.participantCount}</span> studenti
+                      </div>
+
+                      <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low">
+                        <span class="material-symbols-outlined text-[16px] text-secondary">task_alt</span>
+                        <span class="font-bold text-on-surface">{stat.completedCount}</span> completati
+                      </div>
+
+                      {#if stat.completedCount > 0}
+                        <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary-container text-on-secondary-container font-bold">
+                          <span class="material-symbols-outlined text-[16px]">trending_down</span>
+                          <span>-{stat.percentReduction}% CO₂</span>
+                        </div>
+                        <div class="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low">
+                          <span class="text-on-surface-variant font-medium">Media:</span>
+                          <span class="font-bold text-primary">{stat.avgCo2Bowl2} g</span>
+                        </div>
+                      {/if}
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="flex items-center gap-2 self-end lg:self-center">
+                      {#if !isActiveSession}
+                        <button
+                          type="button"
+                          on:click={() => selectSession(stat.session)}
+                          class="px-3 py-1.5 rounded-xl bg-primary text-on-primary font-label-sm text-label-sm font-bold hover:bg-primary/90 transition-colors flex items-center gap-1 shadow-sm"
+                          title="Visualizza e controlla questa sessione sulla LIM"
+                        >
+                          <span class="material-symbols-outlined text-[16px] text-secondary-fixed">play_circle</span>
+                          <span>Carica su LIM</span>
+                        </button>
+                      {/if}
+
+                      {#if stat.session.phase < 3}
+                        <button
+                          type="button"
+                          on:click={() => handleCloseSessionDirect(stat.session.id)}
+                          class="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm font-medium transition-colors flex items-center gap-1"
+                          title="Chiudi sessione e calcola classifica anonima"
+                        >
+                          <span class="material-symbols-outlined text-[16px] text-primary">lock</span>
+                          <span class="hidden sm:inline">Chiudi Sessione</span>
+                        </button>
+                      {:else if stat.session.id !== 'demo-session'}
+                        <button
+                          type="button"
+                          on:click={() => handleReopenSessionDirect(stat.session.id)}
+                          class="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm font-medium transition-colors flex items-center gap-1"
+                          title="Riapri sessione per permettere altre modifiche"
+                        >
+                          <span class="material-symbols-outlined text-[16px] text-on-surface-variant">lock_open</span>
+                          <span class="hidden sm:inline">Riapri</span>
+                        </button>
+                      {/if}
+
+                      {#if stat.session.id !== 'demo-session'}
+                        <button
+                          type="button"
+                          on:click={() => (sessionToDelete = stat.session)}
+                          class="p-1.5 rounded-xl text-error hover:bg-error-container/40 transition-colors"
+                          title="Elimina definitivamente questa sessione"
+                        >
+                          <span class="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              {/if}
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-surface-container-low border-t border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-3 font-label-sm text-label-sm text-on-surface-variant">
+              <div class="flex items-center gap-2">
+                <span>Selezionate per confronto: <strong class="text-primary">{selectedSessionIdsForComparison.length}</strong></span>
+                {#if selectedSessionIdsForComparison.length > 0}
+                  <button
+                    type="button"
+                    on:click={() => (selectedSessionIdsForComparison = [])}
+                    class="text-primary underline hover:opacity-80"
+                  >
+                    Deseleziona tutte
+                  </button>
+                {/if}
+              </div>
+              <div class="flex items-center gap-3">
+                <button
+                  type="button"
+                  on:click={switchToDemoSession}
+                  class="px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors flex items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-[16px] text-secondary">school</span>
+                  <span>Carica Dati Demo (28 studenti)</span>
+                </button>
+                <button
+                  type="button"
+                  on:click={openComparison}
+                  class="px-4 py-2 rounded-xl bg-secondary text-on-secondary font-bold hover:bg-secondary/90 transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <span class="material-symbols-outlined text-[18px]">leaderboard</span>
+                  <span>Apri Confronto Classi</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      <!-- Modale 2: Benchmark Comparativo tra Classi -->
+      {#if showComparisonModal}
+        <div class="fixed inset-0 z-50 bg-on-surface/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6" id="comparison-modal">
+          <div class="bg-surface max-w-6xl w-full max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-outline-variant/30 text-on-surface">
+            <!-- Header -->
+            <div class="p-5 sm:p-6 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-secondary text-on-secondary flex items-center justify-center shadow-sm">
+                  <span class="material-symbols-outlined text-[24px]">compare_arrows</span>
+                </div>
+                <div>
+                  <h2 class="font-headline-sm text-headline-sm font-bold text-primary">Confronto Comparativo tra Classi</h2>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant">
+                    Analisi incrociata dell'impatto ambientale LCA e dei cambi alimentari tra sessioni didattiche.
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  on:click={() => window.print()}
+                  class="px-3.5 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
+                  title="Stampa report comparativo"
+                >
+                  <span class="material-symbols-outlined text-[18px]">print</span>
+                  <span class="hidden sm:inline">Stampa Benchmark</span>
+                </button>
+                <button
+                  type="button"
+                  on:click={() => (showComparisonModal = false)}
+                  class="p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[24px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Content Scrollable Body -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-6">
+              
+              <!-- Class selection chips -->
+              <div class="flex items-center gap-2 flex-wrap bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/30">
+                <span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mr-1">
+                  Classi nel confronto:
+                </span>
+                {#each sessionsForListing as s}
+                  {@const isChecked = selectedSessionIdsForComparison.includes(s.session.id)}
+                  <button
+                    type="button"
+                    on:click={() => toggleCompareSelection(s.session.id)}
+                    class="px-3 py-1 rounded-lg font-label-sm text-label-sm font-semibold transition-all flex items-center gap-1.5 {isChecked ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'}"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">{isChecked ? 'check_box' : 'check_box_outline_blank'}</span>
+                    <span>{s.session.code}</span>
+                  </button>
+                {/each}
+              </div>
+
+              {#if comparedSessionsList.length === 0}
+                <div class="py-12 text-center text-on-surface-variant flex flex-col items-center justify-center p-8 rounded-xl bg-surface-container-low border border-dashed border-outline-variant">
+                  <span class="material-symbols-outlined text-[48px] text-primary/40 mb-2">checklist</span>
+                  <p class="font-headline-sm text-headline-sm font-bold text-primary">Nessuna classe selezionata</p>
+                  <p class="font-body-md text-body-md mt-1">Seleziona almeno una classe tramite i pulsanti sopra per visualizzare l'analisi comparativa.</p>
+                </div>
+              {:else}
+                <!-- Top Collective Highlights -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <!-- Card 1: Leader -->
+                  <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+                    <span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Miglior Performance</span>
+                    <div class="my-2">
+                      <span class="font-headline-md text-headline-md font-extrabold text-secondary">
+                        {leaderSession ? leaderSession.session.code : '-'}
+                      </span>
+                      <span class="font-label-md text-label-md text-secondary font-bold block">
+                        -{leaderSession ? leaderSession.percentReduction : 0}% CO₂
+                      </span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">Maggior taglio relativo dei consumi</span>
+                  </div>
+
+                  <!-- Card 2: Totale CO2 -->
+                  <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+                    <span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">CO₂ Totale Evitata</span>
+                    <div class="my-2">
+                      <span class="font-metric-display text-metric-display text-primary font-bold">
+                        {totalComparisonKgSaved}
+                      </span>
+                      <span class="text-title-md text-on-surface-variant font-semibold ml-1">kg CO₂e</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">Cumulativo di tutte le classi a confronto</span>
+                  </div>
+
+                  <!-- Card 3: Km Auto -->
+                  <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+                    <span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Tratta Auto Diesel Evitata</span>
+                    <div class="my-2">
+                      <span class="font-metric-display text-metric-display text-secondary font-bold">
+                        {totalComparisonKmSaved}
+                      </span>
+                      <span class="text-title-md text-on-surface-variant font-semibold ml-1">km</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">Calcolato su 130g CO₂/km</span>
+                  </div>
+
+                  <!-- Card 4: Studenti -->
+                  <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+                    <span class="font-label-sm text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Studenti Coinvolti</span>
+                    <div class="my-2">
+                      <span class="font-metric-display text-metric-display text-on-surface font-bold">
+                        {totalComparisonStudents}
+                      </span>
+                      <span class="text-title-md text-on-surface-variant font-semibold ml-1">alunni</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">Campione didattico attivo</span>
+                  </div>
+                </div>
+
+                <!-- Side-by-Side Graphic Cards -->
+                <div>
+                  <h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-3">
+                    Confronto Grafico Diretto delle Classi
+                  </h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {#each comparedSessionsList as cStat}
+                      <div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden">
+                        {#if cStat.session.id === session.id}
+                          <div class="absolute top-0 right-0 bg-secondary text-on-secondary px-3 py-0.5 rounded-bl-lg font-label-sm text-label-sm font-bold">
+                            IN SCHERMO
+                          </div>
+                        {/if}
+
+                        <div>
+                          <div class="flex items-baseline justify-between mb-2">
+                            <span class="font-mono text-2xl font-black text-primary tracking-wider">{cStat.session.code}</span>
+                            <span class="font-label-sm text-label-sm text-on-surface-variant">{formatDate(cStat.session.created_at)}</span>
+                          </div>
+
+                          <div class="flex items-center gap-2 mb-4 font-label-sm text-label-sm text-on-surface-variant">
+                            <span class="font-bold text-on-surface">{cStat.participantCount} studenti</span>
+                            <span>•</span>
+                            <span>{cStat.completedCount} prove complete</span>
+                          </div>
+
+                          <!-- Visual Bars -->
+                          <div class="flex flex-col gap-3 my-3 bg-surface-container-low p-3.5 rounded-xl">
+                            <!-- Bar 1: Cieca -->
+                            <div>
+                              <div class="flex justify-between items-baseline mb-1">
+                                <span class="font-label-sm text-label-sm font-semibold flex items-center gap-1.5 text-error">
+                                  <span class="w-2 h-2 rounded-full bg-error"></span>
+                                  Fase 1 (Cieca)
+                                </span>
+                                <span class="font-title-md text-title-md font-bold text-error">
+                                  {cStat.avgCo2Bowl1 > 0 ? `${cStat.avgCo2Bowl1} g` : 'N/D'}
+                                </span>
+                              </div>
+                              <div class="w-full bg-surface-container h-6 rounded-lg overflow-hidden flex items-center">
+                                <div
+                                  class="bg-error/85 h-full rounded-lg transition-all duration-700"
+                                  style="width: {cStat.avgCo2Bowl1 > 0 ? Math.min(100, Math.round((cStat.avgCo2Bowl1 / 3500) * 100)) : 0}%;"
+                                ></div>
+                              </div>
+                            </div>
+
+                            <!-- Bar 2: Consapevole -->
+                            <div>
+                              <div class="flex justify-between items-baseline mb-1">
+                                <span class="font-label-sm text-label-sm font-semibold flex items-center gap-1.5 text-secondary">
+                                  <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                                  Fase 2 (Consapevole)
+                                </span>
+                                <span class="font-title-md text-title-md font-bold text-secondary">
+                                  {cStat.avgCo2Bowl2 > 0 ? `${cStat.avgCo2Bowl2} g` : 'N/D'}
+                                </span>
+                              </div>
+                              <div class="w-full bg-surface-container h-6 rounded-lg overflow-hidden flex items-center">
+                                <div
+                                  class="bg-secondary h-full rounded-lg transition-all duration-700"
+                                  style="width: {cStat.avgCo2Bowl2 > 0 ? Math.min(100, Math.round((cStat.avgCo2Bowl2 / 3500) * 100)) : 0}%;"
+                                ></div>
+                              </div>
+                            </div>
+
+                            <!-- Reference Target line -->
+                            <div class="flex items-center justify-between pt-1 border-t border-outline-variant/30 text-[11px] text-on-surface-variant font-medium">
+                              <span>Target Planetario EAT-Lancet</span>
+                              <span class="font-bold text-primary">≤ 600 g CO₂e</span>
+                            </div>
+                          </div>
+
+                          <!-- Metrics list -->
+                          <div class="flex flex-col gap-2 font-label-md text-label-md pt-2 border-t border-outline-variant/20">
+                            <div class="flex justify-between items-center">
+                              <span class="text-on-surface-variant">Riduzione media CO₂:</span>
+                              {#if cStat.completedCount > 0}
+                                <span class="font-bold text-secondary text-title-md">
+                                  -{cStat.percentReduction}%
+                                </span>
+                              {:else}
+                                <span class="font-semibold text-on-surface-variant text-label-sm">
+                                  In attesa di Fase 2
+                                </span>
+                              {/if}
+                            </div>
+                            <div class="flex justify-between items-center">
+                              <span class="text-on-surface-variant">Studenti in Target EAT:</span>
+                              <span class="font-bold text-primary">
+                                {cStat.eatLancetPassPercent}% ({cStat.eatLancetPassCount})
+                              </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                              <span class="text-on-surface-variant">Transizione Proteica:</span>
+                              <span class="font-semibold text-on-surface truncate max-w-[160px]" title="{getIngredient(cStat.topProteinFase1)?.label || 'Non disp.'} -> {getIngredient(cStat.topProteinFase2)?.label || 'Non disp.'}">
+                                {getIngredient(cStat.topProteinFase1)?.label || '-'} ➔ {getIngredient(cStat.topProteinFase2)?.label || '-'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Card button -->
+                        <div class="mt-4 pt-3 border-t border-outline-variant/20 flex justify-end">
+                          {#if cStat.session.id !== session.id}
+                            <button
+                              type="button"
+                              on:click={() => selectSession(cStat.session)}
+                              class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm font-bold hover:bg-primary/90 transition-colors flex items-center gap-1 shadow-sm"
+                            >
+                              <span class="material-symbols-outlined text-[16px] text-secondary-fixed">play_circle</span>
+                              <span>Attiva sulla LIM</span>
+                            </button>
+                          {:else}
+                            <span class="text-secondary font-label-sm text-label-sm font-bold flex items-center gap-1">
+                              <span class="material-symbols-outlined text-[16px]">visibility</span>
+                              Attualmente Proiettata
+                            </span>
+                          {/if}
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+
+                <!-- Comprehensive Comparison Table -->
+                <div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-outline-variant/30 overflow-x-auto">
+                  <h3 class="font-headline-sm text-headline-sm font-bold text-primary mb-3">
+                    Tabella Dati di Benchmark
+                  </h3>
+                  <table class="w-full text-left font-label-md text-label-md">
+                    <thead>
+                      <tr class="border-b border-outline-variant/40 text-on-surface-variant font-bold uppercase text-[11px] tracking-wider">
+                        <th class="pb-3 pr-4">Classe (PIN)</th>
+                        <th class="pb-3 px-4">Data</th>
+                        <th class="pb-3 px-4 text-center">Partecipanti</th>
+                        <th class="pb-3 px-4 text-right">Media Fase 1</th>
+                        <th class="pb-3 px-4 text-right">Media Fase 2</th>
+                        <th class="pb-3 px-4 text-right">Risparmio Netto</th>
+                        <th class="pb-3 px-4 text-right">% Riduzione</th>
+                        <th class="pb-3 px-4 text-center">In Target EAT</th>
+                        <th class="pb-3 pl-4 text-right">Azione</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20">
+                      {#each comparedSessionsList as row}
+                        <tr class="hover:bg-surface-container-low/60 transition-colors">
+                          <td class="py-3.5 pr-4 font-mono font-bold text-primary text-base">
+                            {row.session.code}
+                          </td>
+                          <td class="py-3.5 px-4 text-on-surface-variant font-body-sm">
+                            {formatDate(row.session.created_at)}
+                          </td>
+                          <td class="py-3.5 px-4 text-center font-bold">
+                            {row.participantCount}
+                          </td>
+                          <td class="py-3.5 px-4 text-right font-medium text-error">
+                            {row.avgCo2Bowl1 > 0 ? `${row.avgCo2Bowl1} g` : '-'}
+                          </td>
+                          <td class="py-3.5 px-4 text-right font-bold text-secondary">
+                            {row.avgCo2Bowl2 > 0 ? `${row.avgCo2Bowl2} g` : '-'}
+                          </td>
+                          <td class="py-3.5 px-4 text-right font-semibold text-primary">
+                            {row.avgCo2Saved > 0 ? `-${row.avgCo2Saved} g` : '-'}
+                          </td>
+                          <td class="py-3.5 px-4 text-right">
+                            <span class="px-2 py-0.5 rounded font-bold {row.percentReduction > 60 ? 'bg-secondary text-on-secondary' : 'bg-surface-container text-on-surface'}">
+                              {row.percentReduction > 0 ? `-${row.percentReduction}%` : '-'}
+                            </span>
+                          </td>
+                          <td class="py-3.5 px-4 text-center font-bold text-primary">
+                            {row.eatLancetPassPercent}%
+                          </td>
+                          <td class="py-3.5 pl-4 text-right">
+                            <button
+                              type="button"
+                              on:click={() => selectSession(row.session)}
+                              class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface text-label-sm font-semibold transition-colors"
+                            >
+                              Carica
+                            </button>
+                          </td>
+                        </tr>
+                      {/each}
+                    </tbody>
+                  </table>
+                </div>
+
+              {/if}
+
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-surface-container-low border-t border-outline-variant/30 flex items-center justify-between">
+              <button
+                type="button"
+                on:click={() => (showComparisonModal = false)}
+                class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors"
+              >
+                Chiudi
+              </button>
+              <button
+                type="button"
+                on:click={openSessionsManager}
+                class="px-4 py-2 rounded-xl bg-primary text-on-primary font-label-md text-label-md font-bold hover:bg-primary/90 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <span class="material-symbols-outlined text-[18px] text-secondary-fixed">folder_shared</span>
+                <span>Torna a Gestione Sessioni</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      <!-- Modale 3: Conferma Eliminazione Sessione -->
+      {#if sessionToDelete}
+        <div class="fixed inset-0 z-50 bg-on-surface/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div class="bg-surface max-w-md w-full rounded-2xl p-6 shadow-2xl border border-outline-variant/30 text-on-surface flex flex-col gap-4">
+            <div class="w-12 h-12 rounded-xl bg-error/10 text-error flex items-center justify-center">
+              <span class="material-symbols-outlined text-[28px]">delete_forever</span>
+            </div>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm font-bold text-primary">Elimina sessione {sessionToDelete.code}?</h3>
+              <p class="font-body-md text-body-md text-on-surface-variant mt-1">
+                Questa azione eliminerà permanentemente la classe <strong>{sessionToDelete.code}</strong> e tutte le bowl e partecipanti associati dal database.
+              </p>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                on:click={() => (sessionToDelete = null)}
+                class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                on:click={handleConfirmDelete}
+                class="px-4 py-2 rounded-xl bg-error text-on-error font-label-md text-label-md font-bold hover:bg-error/90 transition-colors shadow-sm"
+              >
+                Elimina definitivamente
+              </button>
             </div>
           </div>
         </div>

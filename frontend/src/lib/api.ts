@@ -194,3 +194,156 @@ export async function fetchClassSummary(sessionId: string): Promise<ClassSummary
     }
   }) ?? []
 }
+
+export async function fetchAllSessions(): Promise<Session[]> {
+  const { data, error } = await supabase
+    .from('bowl_sessions')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return (data ?? []) as Session[]
+}
+
+export async function deleteSession(sessionId: string): Promise<void> {
+  const { error } = await supabase.from('bowl_sessions').delete().eq('id', sessionId)
+  if (error) throw error
+}
+
+export interface SessionStats {
+  session: Session
+  participantCount: number
+  bowl1Count: number
+  bowl2Count: number
+  completedCount: number
+  avgCo2Bowl1: number
+  avgCo2Bowl2: number
+  avgCo2Saved: number
+  percentReduction: number
+  totalKgSaved: number
+  totalKmSaved: number
+  eatLancetPassCount: number
+  eatLancetPassPercent: number
+  topProteinFase1: string | null
+  topProteinFase2: string | null
+}
+
+export async function fetchSessionsWithStats(): Promise<SessionStats[]> {
+  const [sessionsRes, participantsRes, bowlsRes] = await Promise.all([
+    supabase.from('bowl_sessions').select('*').order('created_at', { ascending: false }),
+    supabase.from('bowl_participants').select('id, session_id'),
+    supabase.from('bowl_bowls').select('id, session_id, participant_id, phase, total_co2_g, protein_ids')
+  ])
+
+  if (sessionsRes.error) throw sessionsRes.error
+  if (participantsRes.error) throw participantsRes.error
+  if (bowlsRes.error) throw bowlsRes.error
+
+  const sessions = (sessionsRes.data ?? []) as Session[]
+  const participants = participantsRes.data ?? []
+  const bowls = bowlsRes.data ?? []
+
+  const participantsBySession = new Map<string, typeof participants>()
+  for (const p of participants) {
+    const list = participantsBySession.get(p.session_id) ?? []
+    list.push(p)
+    participantsBySession.set(p.session_id, list)
+  }
+
+  const bowlsBySession = new Map<string, typeof bowls>()
+  for (const b of bowls) {
+    const list = bowlsBySession.get(b.session_id) ?? []
+    list.push(b)
+    bowlsBySession.set(b.session_id, list)
+  }
+
+  const DIESEL_CO2_PER_KM = 130
+
+  return sessions.map((sess) => {
+    const sessParticipants = participantsBySession.get(sess.id) ?? []
+    const sessBowls = bowlsBySession.get(sess.id) ?? []
+
+    const participantCount = sessParticipants.length
+
+    const bowlsByParticipant = new Map<string, { b1?: typeof sessBowls[0]; b2?: typeof sessBowls[0] }>()
+    for (const b of sessBowls) {
+      const entry = bowlsByParticipant.get(b.participant_id) ?? {}
+      if (b.phase === 1) entry.b1 = b
+      if (b.phase === 2) entry.b2 = b
+      bowlsByParticipant.set(b.participant_id, entry)
+    }
+
+    let b1Count = 0
+    let b2Count = 0
+    let completedCount = 0
+    let totalB1 = 0
+    let totalB2 = 0
+    let eatLancetCount = 0
+
+    const proteinCount1: Record<string, number> = {}
+    const proteinCount2: Record<string, number> = {}
+
+    for (const [, pair] of bowlsByParticipant) {
+      if (pair.b1) {
+        b1Count++
+        totalB1 += Number(pair.b1.total_co2_g) || 0
+        for (const p of (pair.b1.protein_ids || [])) {
+          proteinCount1[p] = (proteinCount1[p] || 0) + 1
+        }
+      }
+      if (pair.b2) {
+        b2Count++
+        totalB2 += Number(pair.b2.total_co2_g) || 0
+        if (Number(pair.b2.total_co2_g) <= 600) {
+          eatLancetCount++
+        }
+        for (const p of (pair.b2.protein_ids || [])) {
+          proteinCount2[p] = (proteinCount2[p] || 0) + 1
+        }
+      }
+      if (pair.b1 && pair.b2) {
+        completedCount++
+      }
+    }
+
+    const avgB1 = b1Count > 0 ? Math.round(totalB1 / b1Count) : 0
+    const avgB2 = b2Count > 0 ? Math.round(totalB2 / b2Count) : 0
+    const avgSaved = b1Count > 0 && b2Count > 0 ? Math.max(0, avgB1 - avgB2) : 0
+    const percentReduction = b1Count > 0 && b2Count > 0 && avgB1 > 0 ? Math.round((avgSaved / avgB1) * 100) : 0
+
+    const getTopProtein = (counts: Record<string, number>): string | null => {
+      let maxKey: string | null = null
+      let maxVal = 0
+      for (const [key, val] of Object.entries(counts)) {
+        if (val > maxVal) {
+          maxVal = val
+          maxKey = key
+        }
+      }
+      return maxKey
+    }
+
+    const totalCo2SavedG = completedCount > 0 ? Math.max(0, totalB1 - totalB2) : 0
+    const totalKgSaved = Number((totalCo2SavedG / 1000).toFixed(1))
+    const totalKmSaved = Number((totalCo2SavedG / DIESEL_CO2_PER_KM).toFixed(1))
+
+    return {
+      session: sess,
+      participantCount,
+      bowl1Count: b1Count,
+      bowl2Count: b2Count,
+      completedCount,
+      avgCo2Bowl1: avgB1,
+      avgCo2Bowl2: avgB2,
+      avgCo2Saved: avgSaved,
+      percentReduction,
+      totalKgSaved,
+      totalKmSaved,
+      eatLancetPassCount: eatLancetCount,
+      eatLancetPassPercent: b2Count > 0 ? Math.round((eatLancetCount / b2Count) * 100) : 0,
+      topProteinFase1: getTopProtein(proteinCount1),
+      topProteinFase2: getTopProtein(proteinCount2)
+    }
+  })
+}
+
