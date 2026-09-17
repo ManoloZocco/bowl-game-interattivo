@@ -113,6 +113,7 @@ export async function fetchParticipantBowls(sessionId: string, participantId: st
 }
 
 export interface ClassSummaryRow {
+  participantId?: string
   participantNumber: number | null
   bowl1?: Bowl
   bowl2?: Bowl
@@ -167,6 +168,7 @@ export async function fetchClassSummary(sessionId: string): Promise<ClassSummary
   return (participants as Participant[] | null)?.map((p) => {
     const pair = byParticipant.get(p.id) ?? {}
     return {
+      participantId: p.id,
       participantNumber: p.number,
       bowl1: pair.bowl1,
       bowl2: pair.bowl2
