@@ -14,12 +14,12 @@
   let liveSession: Session = session
   let pollHandle: number | null = null
 
-  // Selection state
+  // Selection state - start with NO pre-selected items
   let size: Bowl['size'] = 'regular'
-  let baseId = 'patate'
-  let selectedProteins: string[] = ['ceci']
-  let selectedExtras: string[] = ['pomodorini', 'noci']
-  let dressingId = 'olio_evo'
+  let baseId = ''
+  let selectedProteins: string[] = []
+  let selectedExtras: string[] = []
+  let dressingId = ''
 
   let isSaving = false
   let errorMessage = ''
@@ -30,6 +30,8 @@
   let showTipsModal = false
   let isWaitingPhase1 = initialWaiting
   let hasEditedPhase1 = false
+  let isInitialLoaded = false
+  let lastKnownPhase = session.phase
 
   // Default fallback values (matching Stitch Student #17 case study)
   const FALLBACK_B1 = {
@@ -48,23 +50,77 @@
     ingredient_ids: ['pomodorini', 'noci']
   }
 
+  if (initialWaiting && !summary && session.id === 'demo-session') {
+    summary = {
+      participantNumber: 17,
+      bowl1: {
+        id: 'demo-b1',
+        session_id: session.id,
+        participant_id: participant.id,
+        phase: 1,
+        size: 'regular',
+        base_id: 'riso_bianco',
+        protein_ids: ['salmone'],
+        ingredient_ids: ['avocado', 'pomodorini'],
+        total_co2_g: 2626,
+        total_km: 20.2,
+        created_at: new Date().toISOString()
+      }
+    }
+  }
+
   async function refreshSession() {
     if (session.id === 'demo-session') return
     try {
-      liveSession = await fetchSession(session.id)
-      summary = await fetchParticipantBowls(session.id, participant.id)
+      const updatedSession = await fetchSession(session.id)
+      const updatedSummary = await fetchParticipantBowls(session.id, participant.id)
+
+      // Detect phase transition from 1 -> 2
+      if (lastKnownPhase === 1 && updatedSession.phase === 2) {
+        isWaitingPhase1 = false
+        // Starting Phase 2 fresh with no pre-selections
+        if (!updatedSummary?.bowl2) {
+          baseId = ''
+          selectedProteins = []
+          selectedExtras = []
+        }
+      }
+      lastKnownPhase = updatedSession.phase
+      liveSession = updatedSession
+      summary = updatedSummary
+
       if (summary?.participantNumber && participant.number !== summary.participantNumber) {
         participant = { ...participant, number: summary.participantNumber }
       }
-      if (summary?.bowl1) {
-        if (!hasEditedPhase1 && liveSession.phase === 1) {
-          isWaitingPhase1 = true
+
+      // First load only (on mount / page refresh)
+      if (!isInitialLoaded) {
+        isInitialLoaded = true
+        if (liveSession.phase === 1) {
+          if (summary?.bowl1) {
+            isWaitingPhase1 = true
+            baseId = summary.bowl1.base_id || ''
+            selectedProteins = summary.bowl1.protein_ids ? [...summary.bowl1.protein_ids] : []
+            selectedExtras = summary.bowl1.ingredient_ids ? [...summary.bowl1.ingredient_ids] : []
+            if (summary.bowl1.size) size = summary.bowl1.size
+          }
+        } else if (liveSession.phase === 2) {
+          if (summary?.bowl2) {
+            baseId = summary.bowl2.base_id || ''
+            selectedProteins = summary.bowl2.protein_ids ? [...summary.bowl2.protein_ids] : []
+            selectedExtras = summary.bowl2.ingredient_ids ? [...summary.bowl2.ingredient_ids] : []
+            if (summary.bowl2.size) size = summary.bowl2.size
+          } else {
+            // Fresh Phase 2: ensure empty
+            baseId = ''
+            selectedProteins = []
+            selectedExtras = []
+          }
         }
-        if (!hasEditedPhase1) {
-          if (summary.bowl1.base_id) baseId = summary.bowl1.base_id
-          if (summary.bowl1.protein_ids?.length) selectedProteins = summary.bowl1.protein_ids
-          if (summary.bowl1.ingredient_ids?.length) selectedExtras = summary.bowl1.ingredient_ids
-          if (summary.bowl1.size) size = summary.bowl1.size
+      } else {
+        // Subsequent recurring polls: NEVER overwrite user form selections!
+        if (liveSession.phase === 1 && summary?.bowl1 && !hasEditedPhase1) {
+          isWaitingPhase1 = true
         }
       }
     } catch (error) {
@@ -82,6 +138,7 @@
   })
 
   function toggleProtein(id: string) {
+    errorMessage = ''
     if (selectedProteins.includes(id)) {
       selectedProteins = selectedProteins.filter((x) => x !== id)
     } else {
@@ -99,6 +156,7 @@
   }
 
   function toggleExtra(id: string) {
+    errorMessage = ''
     if (selectedExtras.includes(id)) {
       selectedExtras = selectedExtras.filter((x) => x !== id)
     } else {
@@ -212,8 +270,19 @@
   }
 
   $: currentBase = getIngredient(baseId)
-  $: currentProteinObjs = selectedProteins.map((id) => getIngredient(id)).filter(Boolean)
-  $: currentExtraObjs = selectedExtras.map((id) => getIngredient(id)).filter(Boolean)
+  $: currentProteinObjs = selectedProteins.map((id) => getIngredient(id)).filter(Boolean) as (typeof PROTEINS)[number][]
+  $: currentExtraObjs = selectedExtras.map((id) => getIngredient(id)).filter(Boolean) as (typeof EXTRAS)[number][]
+
+  $: hasSelections = Boolean(baseId || selectedProteins.length > 0 || selectedExtras.length > 0)
+
+  // Display items for waiting screen (fall back to summary.bowl1 if form is cleared)
+  $: displayBase = currentBase ?? (summary?.bowl1?.base_id ? getIngredient(summary.bowl1.base_id) : undefined)
+  $: displayProteins = currentProteinObjs.length > 0
+    ? currentProteinObjs
+    : (summary?.bowl1?.protein_ids?.map((id) => getIngredient(id)).filter(Boolean) as (typeof PROTEINS)[number][] ?? [])
+  $: displayExtras = currentExtraObjs.length > 0
+    ? currentExtraObjs
+    : (summary?.bowl1?.ingredient_ids?.map((id) => getIngredient(id)).filter(Boolean) as (typeof EXTRAS)[number][] ?? [])
 
   // Deltas for Phase 2
   $: effectiveBowl1Total = summary?.bowl1?.total_co2_g ?? FALLBACK_B1.total_co2_g
@@ -326,7 +395,7 @@
                 <span class="font-title-md text-title-md font-bold text-primary">Riepilogo delle tue scelte</span>
               </div>
               <span class="font-label-sm text-label-sm text-secondary font-semibold bg-secondary-container/50 px-2.5 py-0.5 rounded-full">
-                {size === 'regular' ? 'Regular (1 Proteina)' : 'Large (2 Proteine)'}
+                {(summary?.bowl1?.size ?? size) === 'regular' ? 'Regular (1 Proteina)' : 'Large (2 Proteine)'}
               </span>
             </div>
 
@@ -335,17 +404,17 @@
               <!-- Base -->
               <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low">
                 <div class="flex items-center gap-2.5">
-                  <span class="text-[22px]">{currentBase?.icon ?? '🍚'}</span>
+                  <span class="text-[22px]">{displayBase?.icon ?? '🍚'}</span>
                   <div>
-                    <p class="font-bold text-on-surface leading-none">{currentBase?.label ?? 'Base'}</p>
+                    <p class="font-bold text-on-surface leading-none">{displayBase?.label ?? 'Base selezionata'}</p>
                     <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Base della bowl</p>
                   </div>
                 </div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">{currentBase?.portion ?? '150g'}</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">{displayBase?.portion ?? '150g'}</span>
               </div>
 
               <!-- Proteine -->
-              {#each currentProteinObjs as prot}
+              {#each displayProteins as prot}
                 <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low">
                   <div class="flex items-center gap-2.5">
                     <span class="text-[22px]">{prot?.icon ?? '🍗'}</span>
@@ -359,13 +428,13 @@
               {/each}
 
               <!-- Extra -->
-              {#if currentExtraObjs.length > 0}
+              {#if displayExtras.length > 0}
                 <div class="p-2.5 rounded-xl bg-surface-container-low flex flex-col gap-1.5">
                   <span class="font-label-sm text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider">
-                    Ingredienti Extra ({currentExtraObjs.length}):
+                    Ingredienti Extra ({displayExtras.length}):
                   </span>
                   <div class="flex flex-wrap gap-1.5">
-                    {#each currentExtraObjs as extra}
+                    {#each displayExtras as extra}
                       <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-label-sm shadow-sm">
                         <span>{extra?.icon ?? '🥗'}</span>
                         <span class="font-medium">{extra?.label}</span>
@@ -387,7 +456,16 @@
           <div class="pt-space-xs flex flex-col gap-space-xs">
             <button
               type="button"
-              on:click={() => { isWaitingPhase1 = false; hasEditedPhase1 = true; }}
+              on:click={() => {
+                isWaitingPhase1 = false
+                hasEditedPhase1 = true
+                if (summary?.bowl1 && !baseId) {
+                  baseId = summary.bowl1.base_id || ''
+                  selectedProteins = summary.bowl1.protein_ids ? [...summary.bowl1.protein_ids] : []
+                  selectedExtras = summary.bowl1.ingredient_ids ? [...summary.bowl1.ingredient_ids] : []
+                  if (summary.bowl1.size) size = summary.bowl1.size
+                }
+              }}
               class="w-full h-14 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high border-2 border-primary/20 text-primary font-title-md text-title-md font-bold flex items-center justify-center gap-space-sm shadow-sm transition-all active:scale-[0.99]"
             >
               <span class="material-symbols-outlined text-[20px]">edit</span>
@@ -430,26 +508,34 @@
           <!-- Stylized Bowl with Floating Visual Food Layers -->
           <div class="relative w-48 h-36 flex flex-col items-center justify-end">
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <!-- Dressing drop -->
-              <div class="absolute top-2 w-8 h-8 rounded-full bg-tertiary-fixed/80 flex items-center justify-center text-[16px] shadow-sm animate-bounce" style="animation-duration: 2.5s;">
-                🫒
-              </div>
               <!-- Protein layer -->
-              <div class="absolute top-8 left-6 w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-[22px] shadow-sm transform -rotate-6 transition-all duration-300">
-                {currentProteinObjs[0]?.icon ?? '🐟'}
-              </div>
+              {#if currentProteinObjs[0]}
+                <div class="absolute top-8 left-6 w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-[22px] shadow-sm transform -rotate-6 transition-all duration-300">
+                  {currentProteinObjs[0].icon ?? '🍗'}
+                </div>
+              {/if}
               <!-- Extra 1 -->
-              <div class="absolute top-7 right-6 w-11 h-11 rounded-full bg-secondary-container flex items-center justify-center text-[20px] shadow-sm transform rotate-12 transition-all duration-300">
-                {currentExtraObjs[0]?.icon ?? '🥑'}
-              </div>
+              {#if currentExtraObjs[0]}
+                <div class="absolute top-7 right-6 w-11 h-11 rounded-full bg-secondary-container flex items-center justify-center text-[20px] shadow-sm transform rotate-12 transition-all duration-300">
+                  {currentExtraObjs[0].icon ?? '🥗'}
+                </div>
+              {/if}
               <!-- Extra 2 -->
-              <div class="absolute top-14 right-12 w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-[18px] shadow-sm transform -rotate-12 transition-all duration-300">
-                {currentExtraObjs[1]?.icon ?? '🍅'}
-              </div>
+              {#if currentExtraObjs[1]}
+                <div class="absolute top-14 right-12 w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-[18px] shadow-sm transform -rotate-12 transition-all duration-300">
+                  {currentExtraObjs[1].icon ?? '🍅'}
+                </div>
+              {/if}
               <!-- Base layer -->
-              <div class="absolute bottom-6 w-28 h-10 rounded-full bg-surface-container-highest flex items-center justify-center shadow-inner text-[15px] text-on-surface-variant font-label-sm font-semibold">
-                {currentBase?.icon ?? '🍚'} {currentBase?.label ?? 'Riso'}
-              </div>
+              {#if currentBase}
+                <div class="absolute bottom-6 w-28 h-10 rounded-full bg-surface-container-highest flex items-center justify-center shadow-inner text-[15px] text-on-surface-variant font-label-sm font-semibold">
+                  {currentBase.icon ?? '🍚'} {currentBase.label}
+                </div>
+              {:else}
+                <div class="absolute bottom-7 px-3 py-1 rounded-full bg-surface-container-highest/80 border border-dashed border-outline-variant text-[12px] text-on-surface-variant font-label-sm">
+                  Ciotola vuota
+                </div>
+              {/if}
             </div>
 
             <!-- Ceramic Bowl Silhouette SVG -->
@@ -462,21 +548,30 @@
           </div>
 
           <!-- Recipe Mini Summary Chips -->
-          <div class="mt-space-sm w-full flex items-center justify-center gap-1.5 flex-wrap">
-            <span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-              <span>{currentBase?.label ?? 'Base'}</span>
-            </span>
+          <div class="mt-space-sm w-full flex items-center justify-center gap-1.5 flex-wrap min-h-[28px]">
+            {#if currentBase}
+              <span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                <span>{currentBase.label}</span>
+              </span>
+            {/if}
             {#each currentProteinObjs as prot}
               <span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
                 <span>{prot.label}</span>
               </span>
             {/each}
-            <span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-              <span>{selectedExtras.length} Extra</span>
-            </span>
+            {#if selectedExtras.length > 0}
+              <span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                <span>{selectedExtras.length} Extra</span>
+              </span>
+            {/if}
+            {#if !currentBase && currentProteinObjs.length === 0 && selectedExtras.length === 0}
+              <span class="text-on-surface-variant font-label-sm text-label-sm opacity-70">
+                Seleziona gli ingredienti qui sotto per comporla
+              </span>
+            {/if}
           </div>
         </div>
 
@@ -526,13 +621,13 @@
         <div class="flex flex-col gap-space-xs mt-space-xs">
           <div class="flex items-center justify-between">
             <span class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wide">2. Scegli la base</span>
-            <span class="font-label-sm text-label-sm text-secondary font-semibold">1 selezionata</span>
+            <span class="font-label-sm text-label-sm text-secondary font-semibold">{baseId ? '1 selezionata' : 'Nessuna base'}</span>
           </div>
           <div class="flex flex-wrap gap-2">
             {#each BASES as base}
               <button
                 type="button"
-                on:click={() => (baseId = base.id)}
+                on:click={() => { baseId = base.id; errorMessage = ''; }}
                 class="px-space-md py-2.5 rounded-full font-label-lg text-label-lg flex items-center gap-1.5 transition-all shadow-sm active:scale-[0.98] {baseId === base.id ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest text-on-surface'}"
               >
                 <span>{base.icon ?? '🍚'}</span>
@@ -547,7 +642,11 @@
           <div class="flex items-center justify-between">
             <span class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wide">3. Proteine</span>
             <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">
-              {size === 'regular' ? 'Scegli 1 ingrediente' : 'Scegli 2 ingredienti'}
+              {#if size === 'regular'}
+                {selectedProteins.length ? '1 selezionata' : 'Scegli 1 ingrediente'}
+              {:else}
+                {selectedProteins.length ? `${selectedProteins.length}/2 selezionate` : 'Scegli 2 ingredienti'}
+              {/if}
             </span>
           </div>
           <div class="grid grid-cols-2 gap-space-sm">
@@ -555,7 +654,7 @@
               {@const isSelected = selectedProteins.includes(prot.id)}
               <button
                 type="button"
-                on:click={() => toggleProtein(prot.id)}
+                on:click={() => { toggleProtein(prot.id); errorMessage = ''; }}
                 class="p-space-sm rounded-xl text-left transition-all active:scale-[0.98] shadow-sm flex items-center gap-space-sm {isSelected ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-lowest text-on-surface'}"
               >
                 <span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
@@ -581,7 +680,7 @@
               {@const isSelected = selectedExtras.includes(ing.id)}
               <button
                 type="button"
-                on:click={() => toggleExtra(ing.id)}
+                on:click={() => { toggleExtra(ing.id); errorMessage = ''; }}
                 class="p-space-sm rounded-xl text-left transition-all active:scale-[0.98] shadow-sm flex items-center justify-between {isSelected ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-lowest text-on-surface'}"
               >
                 <div class="flex items-center gap-2 min-w-0">
@@ -608,7 +707,13 @@
         </div>
 
         <!-- Confirm Button Phase 1 -->
-        <div class="mt-space-md pb-6">
+        <div class="mt-space-md pb-6 flex flex-col gap-space-xs">
+          {#if errorMessage}
+            <div class="p-space-sm rounded-xl bg-error-container text-on-error-container font-label-md text-label-md flex items-center gap-2 shadow-xs">
+              <span class="material-symbols-outlined text-[20px] text-error">error</span>
+              <span>{errorMessage}</span>
+            </div>
+          {/if}
           <button
             type="button"
             on:click={handleSaveCurrentPhase}
@@ -701,11 +806,29 @@
         <!-- Mission Callout matching Stitch 02 -->
         <div class="flex items-start gap-space-sm p-space-md rounded-xl bg-secondary-container/50">
           <span class="material-symbols-outlined text-secondary text-[24px] shrink-0 mt-0.5">psychology_alt</span>
-          <div class="flex flex-col">
+          <div class="flex flex-col flex-1">
             <h3 class="font-title-md text-title-md text-on-secondary-container font-bold">Sfida Consapevole: Riprogetta la Bowl</h3>
             <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
               Ora prova a ricreare una nuova bowl che ti piaccia, ma con il minimo impatto climatico possibile! Tutti gli ingredienti ora mostrano il costo in CO₂ in tempo reale.
             </p>
+            {#if summary?.bowl1}
+              <button
+                type="button"
+                on:click={() => {
+                  if (summary?.bowl1) {
+                    baseId = summary.bowl1.base_id || ''
+                    selectedProteins = summary.bowl1.protein_ids ? [...summary.bowl1.protein_ids] : []
+                    selectedExtras = summary.bowl1.ingredient_ids ? [...summary.bowl1.ingredient_ids] : []
+                    if (summary.bowl1.size) size = summary.bowl1.size
+                    errorMessage = ''
+                  }
+                }}
+                class="mt-2.5 text-xs font-semibold text-primary hover:underline flex items-center gap-1.5 bg-surface-container-lowest/80 px-2.5 py-1.5 rounded-lg w-max shadow-xs active:scale-95 transition-all"
+              >
+                <span class="material-symbols-outlined text-[16px] text-secondary">content_copy</span>
+                <span>Copia ingredienti da Bowl 1</span>
+              </button>
+            {/if}
           </div>
         </div>
 
@@ -716,7 +839,7 @@
               <span class="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center font-label-sm text-label-sm text-primary font-bold">1</span>
               <h4 class="font-title-md text-title-md text-on-surface font-semibold">Scegli la Base</h4>
             </div>
-            <span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">1 opzione</span>
+            <span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">{baseId ? '1 scelta' : 'Nessuna'}</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
             {#each BASES as base}
@@ -724,7 +847,7 @@
               {@const badge = getCo2BadgeClass(base.co2_g)}
               <button
                 type="button"
-                on:click={() => (baseId = base.id)}
+                on:click={() => { baseId = base.id; errorMessage = ''; }}
                 class="relative flex items-center justify-between p-space-sm rounded-xl text-left transition-all shadow-sm active:scale-[0.98] {isSelected ? 'bg-secondary-container/40 ring-2 ring-secondary' : 'bg-surface-container-lowest'}"
               >
                 <div class="flex items-center gap-space-sm min-w-0">
@@ -755,7 +878,7 @@
               <span class="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center font-label-sm text-label-sm text-primary font-bold">2</span>
               <h4 class="font-title-md text-title-md text-on-surface font-semibold">Fonte Proteica</h4>
             </div>
-            <span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">1 opzione</span>
+            <span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">{selectedProteins.length ? `${selectedProteins.length} scelta` : 'Nessuna'}</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
             {#each PROTEINS as prot}
@@ -763,7 +886,7 @@
               {@const badge = getCo2BadgeClass(prot.co2_g)}
               <button
                 type="button"
-                on:click={() => toggleProtein(prot.id)}
+                on:click={() => { toggleProtein(prot.id); errorMessage = ''; }}
                 class="relative flex items-center justify-between p-space-sm rounded-xl text-left transition-all shadow-sm active:scale-[0.98] {isSelected ? 'bg-secondary-container/40 ring-2 ring-secondary' : 'bg-surface-container-lowest'}"
               >
                 <div class="flex items-center gap-space-sm min-w-0">
@@ -802,7 +925,7 @@
               {@const badge = getCo2BadgeClass(ing.co2_g)}
               <button
                 type="button"
-                on:click={() => toggleExtra(ing.id)}
+                on:click={() => { toggleExtra(ing.id); errorMessage = ''; }}
                 class="relative flex items-center justify-between p-space-sm rounded-xl text-left transition-all shadow-sm active:scale-[0.98] {isSelected ? 'bg-secondary-container/40 ring-2 ring-secondary' : 'bg-surface-container-lowest'}"
               >
                 <div class="flex items-center gap-space-sm min-w-0">
@@ -844,30 +967,61 @@
         <!-- Sticky Floating Delta Banner matching Stitch 02 (above bottom nav) -->
         <div class="fixed bottom-20 left-0 right-0 z-40 px-margin pointer-events-none">
           <div class="max-w-md mx-auto rounded-xl bg-primary text-on-primary p-space-md shadow-[0_16px_32px_-6px_rgba(0,54,41,0.35)] flex flex-col gap-space-xs transition-all pointer-events-auto">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-secondary-fixed text-[20px]">trending_down</span>
-                <span class="font-label-sm text-label-sm text-secondary-fixed uppercase font-bold tracking-wider">Risparmio vs Bowl 1</span>
+            {#if errorMessage}
+              <div class="p-2 rounded-lg bg-error-container text-on-error-container font-label-sm text-label-sm flex items-center gap-1.5 mb-1 shadow-xs">
+                <span class="material-symbols-outlined text-[16px] text-error">error</span>
+                <span class="font-medium">{errorMessage}</span>
               </div>
-              <span class="px-space-xs py-0.5 rounded bg-secondary text-on-secondary font-label-sm text-label-sm font-extrabold tracking-tight">
-                {deltaCo2 >= 0 ? `-${percentReduction}% CO₂` : `+${Math.abs(percentReduction)}% CO₂`}
-              </span>
-            </div>
+            {/if}
 
-            <div class="flex items-baseline justify-between mt-0.5">
-              <div>
-                <span class="font-headline-lg-mobile text-headline-lg-mobile text-on-primary font-extrabold">
-                  {deltaCo2 >= 0 ? `-${deltaCo2.toLocaleString('it-IT')}` : `+${Math.abs(deltaCo2).toLocaleString('it-IT')}`}
-                </span>
-                <span class="font-label-md text-label-md text-primary-fixed-dim">gCO₂eq</span>
-              </div>
-              <div class="flex items-center gap-1 text-right">
-                <span class="material-symbols-outlined text-secondary-fixed text-[16px]">check</span>
-                <span class="font-label-sm text-label-sm text-secondary-fixed font-bold">
-                  {deltaCo2 >= 0 ? `${kmSaved} km in auto evitati!` : 'Impatto superiore a Bowl 1'}
+            {#if hasSelections}
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-secondary-fixed text-[20px]">trending_down</span>
+                  <span class="font-label-sm text-label-sm text-secondary-fixed uppercase font-bold tracking-wider">Risparmio vs Bowl 1</span>
+                </div>
+                <span class="px-space-xs py-0.5 rounded {deltaCo2 >= 0 ? 'bg-secondary text-on-secondary' : 'bg-error-container text-on-error-container'} font-label-sm text-label-sm font-extrabold tracking-tight">
+                  {deltaCo2 >= 0 ? `-${percentReduction}% CO₂` : `+${Math.abs(percentReduction)}% CO₂`}
                 </span>
               </div>
-            </div>
+
+              <div class="flex items-baseline justify-between mt-0.5">
+                <div>
+                  <span class="font-headline-lg-mobile text-headline-lg-mobile text-on-primary font-extrabold">
+                    {deltaCo2 >= 0 ? `-${deltaCo2.toLocaleString('it-IT')}` : `+${Math.abs(deltaCo2).toLocaleString('it-IT')}`}
+                  </span>
+                  <span class="font-label-md text-label-md text-primary-fixed-dim">gCO₂eq</span>
+                </div>
+                <div class="flex items-center gap-1 text-right">
+                  {#if deltaCo2 >= 0}
+                    <span class="material-symbols-outlined text-secondary-fixed text-[16px]">check</span>
+                    <span class="font-label-sm text-label-sm text-secondary-fixed font-bold">
+                      {kmSaved} km in auto evitati!
+                    </span>
+                  {:else}
+                    <span class="material-symbols-outlined text-error-container text-[16px]">warning</span>
+                    <span class="font-label-sm text-label-sm text-error-container font-bold">
+                      Impatto superiore a Bowl 1
+                    </span>
+                  {/if}
+                </div>
+              </div>
+            {:else}
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-secondary-fixed text-[20px]">eco</span>
+                  <span class="font-label-sm text-label-sm text-secondary-fixed uppercase font-bold tracking-wider">Componi la nuova bowl</span>
+                </div>
+                <span class="px-space-xs py-0.5 rounded bg-surface-container-high/60 text-primary-fixed font-label-sm text-label-sm font-semibold">
+                  Nessuna scelta
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between mt-0.5 text-primary-fixed-dim font-body-sm text-body-sm">
+                <span>Seleziona base e proteine a basso impatto</span>
+                <span class="font-label-sm text-label-sm font-bold text-secondary-fixed">Budget: &lt;600g</span>
+              </div>
+            {/if}
 
             <button
               type="button"
@@ -875,7 +1029,7 @@
               disabled={isSaving}
               class="w-full mt-space-xs py-2.5 px-space-md rounded-xl bg-secondary hover:bg-secondary-container hover:text-on-secondary-container text-on-secondary font-title-md text-title-md font-bold flex items-center justify-center gap-2 shadow-sm transition-transform active:scale-[0.98] disabled:opacity-60"
             >
-              <span>Salva Bowl Consapevole (Fase 2)</span>
+              <span>{summary?.bowl2 ? 'Aggiorna Bowl Consapevole (Fase 2)' : 'Salva Bowl Consapevole (Fase 2)'}</span>
               <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
           </div>
