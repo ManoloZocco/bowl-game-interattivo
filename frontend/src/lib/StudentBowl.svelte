@@ -6,6 +6,7 @@
 
   export let session: Session
   export let participant: Participant
+  export let initialWaiting = false
 
   const dispatch = createEventDispatcher<{ exit: void }>()
   const DIESEL_CO2_PER_KM = 130
@@ -27,6 +28,8 @@
   let activeTab: 'componi' | 'impronta' | 'classifica' | 'guida' = 'componi'
   let breakdownCat: 'protein' | 'base' | 'extra' = 'protein'
   let showTipsModal = false
+  let isWaitingPhase1 = initialWaiting
+  let hasEditedPhase1 = false
 
   // Default fallback values (matching Stitch Student #17 case study)
   const FALLBACK_B1 = {
@@ -52,6 +55,17 @@
       summary = await fetchParticipantBowls(session.id, participant.id)
       if (summary?.participantNumber && participant.number !== summary.participantNumber) {
         participant = { ...participant, number: summary.participantNumber }
+      }
+      if (summary?.bowl1) {
+        if (!hasEditedPhase1 && liveSession.phase === 1) {
+          isWaitingPhase1 = true
+        }
+        if (!hasEditedPhase1) {
+          if (summary.bowl1.base_id) baseId = summary.bowl1.base_id
+          if (summary.bowl1.protein_ids?.length) selectedProteins = summary.bowl1.protein_ids
+          if (summary.bowl1.ingredient_ids?.length) selectedExtras = summary.bowl1.ingredient_ids
+          if (summary.bowl1.size) size = summary.bowl1.size
+        }
       }
     } catch (error) {
       console.error(error)
@@ -177,6 +191,11 @@
           }
         }
       }
+
+      if (liveSession.phase === 1) {
+        isWaitingPhase1 = true
+        hasEditedPhase1 = false
+      }
     } catch (err) {
       console.error(err)
       errorMessage = 'Errore durante il salvataggio della bowl. Riprova.'
@@ -250,7 +269,138 @@
     <!-- FASE 1: SCELTA ALLA CIECA                                                -->
     <!-- ========================================================================= -->
     {#if liveSession.phase === 1}
-      <div class="flex flex-col gap-space-md pt-space-md">
+      {#if isWaitingPhase1}
+        <!-- SCHERMATA DI ATTESA FASE 1 CON RIEPILOGO E TASTO MODIFICA -->
+        <div class="flex flex-col gap-space-md pt-space-md pb-12">
+          
+          <!-- Stepper Indicator -->
+          <div class="flex flex-col gap-space-xs bg-surface-container-low p-space-md rounded-xl shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-bold flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                Fase 1 di 3 · Blind Challenge
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+                In attesa
+              </span>
+            </div>
+            <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden flex mt-1">
+              <div class="h-full bg-secondary rounded-full transition-all duration-500 w-1/3"></div>
+            </div>
+          </div>
+
+          <!-- Hero Waiting Card -->
+          <div class="relative overflow-hidden rounded-2xl bg-surface-container-lowest p-space-lg shadow-md border border-secondary-container/80 flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center mb-space-sm shadow-sm relative">
+              <span class="material-symbols-outlined text-[34px] text-secondary">hourglass_top</span>
+              <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-secondary"></span>
+              </span>
+            </div>
+
+            <span class="px-space-sm py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold uppercase tracking-wider mb-2">
+              Scelta 1 Registrata
+            </span>
+
+            <h2 class="font-headline-sm text-headline-sm text-primary font-bold">
+              In attesa della classe...
+            </h2>
+
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-2 max-w-sm leading-relaxed">
+              La tua bowl istintiva è stata registrata con successo! Siamo in attesa che tutta la classe finisca di comporre la propria bowl e che il/la <strong>Docente</strong> dia il via alla <strong>Fase 2 (Scelta Consapevole)</strong> dalla LIM.
+            </p>
+
+            <div class="mt-space-md w-full p-space-sm rounded-xl bg-surface-container-low flex items-center justify-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+              <span class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping"></span>
+              <span>Passaggio automatico alla Fase 2 appena avviata</span>
+            </div>
+          </div>
+
+          <!-- Riepilogo Scelte (Scontrino Personale Fase 1) -->
+          <div class="rounded-2xl bg-surface-container-lowest p-space-md shadow-md flex flex-col gap-space-sm">
+            <div class="flex items-center justify-between border-b border-surface-container pb-space-xs">
+              <div class="flex items-center gap-space-xs">
+                <span class="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+                <span class="font-title-md text-title-md font-bold text-primary">Riepilogo delle tue scelte</span>
+              </div>
+              <span class="font-label-sm text-label-sm text-secondary font-semibold bg-secondary-container/50 px-2.5 py-0.5 rounded-full">
+                {size === 'regular' ? 'Regular (1 Proteina)' : 'Large (2 Proteine)'}
+              </span>
+            </div>
+
+            <!-- Dettaglio Ingredienti -->
+            <div class="space-y-space-xs font-label-md text-label-md pt-1">
+              <!-- Base -->
+              <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-[22px]">{currentBase?.icon ?? '🍚'}</span>
+                  <div>
+                    <p class="font-bold text-on-surface leading-none">{currentBase?.label ?? 'Base'}</p>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Base della bowl</p>
+                  </div>
+                </div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">{currentBase?.portion ?? '150g'}</span>
+              </div>
+
+              <!-- Proteine -->
+              {#each currentProteinObjs as prot}
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-[22px]">{prot?.icon ?? '🍗'}</span>
+                    <div>
+                      <p class="font-bold text-on-surface leading-none">{prot?.label ?? 'Proteina'}</p>
+                      <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Fonte proteica</p>
+                    </div>
+                  </div>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">{prot?.portion ?? '80g'}</span>
+                </div>
+              {/each}
+
+              <!-- Extra -->
+              {#if currentExtraObjs.length > 0}
+                <div class="p-2.5 rounded-xl bg-surface-container-low flex flex-col gap-1.5">
+                  <span class="font-label-sm text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider">
+                    Ingredienti Extra ({currentExtraObjs.length}):
+                  </span>
+                  <div class="flex flex-wrap gap-1.5">
+                    {#each currentExtraObjs as extra}
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-label-sm shadow-sm">
+                        <span>{extra?.icon ?? '🥗'}</span>
+                        <span class="font-medium">{extra?.label}</span>
+                      </span>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+            </div>
+
+            <!-- Avviso Didattico Blind -->
+            <div class="p-space-sm rounded-xl bg-surface-container-low flex items-start gap-space-xs text-on-surface-variant font-body-sm text-body-sm mt-1">
+              <span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">lock</span>
+              <span>L'impronta di carbonio di questa ricetta è ancora segreta: verrà rivelata all'inizio della Fase 2 per confrontarla con la soglia di sostenibilità planetaria!</span>
+            </div>
+          </div>
+
+          <!-- Tasto Modifica Scelte -->
+          <div class="pt-space-xs flex flex-col gap-space-xs">
+            <button
+              type="button"
+              on:click={() => { isWaitingPhase1 = false; hasEditedPhase1 = true; }}
+              class="w-full h-14 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high border-2 border-primary/20 text-primary font-title-md text-title-md font-bold flex items-center justify-center gap-space-sm shadow-sm transition-all active:scale-[0.99]"
+            >
+              <span class="material-symbols-outlined text-[20px]">edit</span>
+              <span>Torna indietro e modifica le scelte</span>
+            </button>
+            <p class="text-center font-label-sm text-label-sm text-on-surface-variant opacity-80 mt-1">
+              Puoi cambiare la tua ricetta finché il/la docente non avvia la Fase 2
+            </p>
+          </div>
+
+        </div>
+      {:else}
+        <div class="flex flex-col gap-space-md pt-space-md">
         
         <!-- Stepper Indicator matching Stitch 01 -->
         <div class="flex flex-col gap-space-xs bg-surface-container-low p-space-md rounded-xl shadow-sm">
@@ -476,6 +626,7 @@
         </div>
 
       </div>
+      {/if}
 
     <!-- ========================================================================= -->
     <!-- FASE 2: CLIMA & CONSAPEVOLEZZA                                           -->

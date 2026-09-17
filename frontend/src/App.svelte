@@ -11,6 +11,7 @@
   let activeSession: Session | null = null
   let activeParticipant: Participant | null = null
   let teacherLoading = false
+  let studentInitialWaiting = false
 
   // Student joining state - 5 slot inputs matching Stitch design
   let pinChars: string[] = ['', '', '', '', '']
@@ -36,6 +37,7 @@
     }
     if (viewParam === 'student') {
       const phaseParam = (Number(params.get('phase')) || 1) as 1 | 2 | 3
+      studentInitialWaiting = params.get('waiting') === '1' || params.get('waiting') === 'true'
       activeSession = {
         id: 'demo-session',
         code: 'NMLHM',
@@ -496,6 +498,7 @@
     <StudentBowl
       session={activeSession}
       participant={activeParticipant}
+      initialWaiting={studentInitialWaiting}
       on:exit={exitToLanding}
     />
   {/if}

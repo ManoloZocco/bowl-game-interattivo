@@ -72,6 +72,25 @@ export interface BowlInput {
 }
 
 export async function saveBowl(input: BowlInput): Promise<Bowl> {
+  const { data: existing } = await supabase
+    .from('bowl_bowls')
+    .select('id')
+    .eq('session_id', input.session_id)
+    .eq('participant_id', input.participant_id)
+    .eq('phase', input.phase)
+    .maybeSingle()
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from('bowl_bowls')
+      .update(input)
+      .eq('id', existing.id)
+      .select('*')
+      .single()
+    if (error || !data) throw error ?? new Error('Impossibile aggiornare la bowl')
+    return data as Bowl
+  }
+
   const { data, error } = await supabase.from('bowl_bowls').insert(input).select('*').single()
   if (error || !data) {
     throw error ?? new Error('Impossibile salvare la bowl')
