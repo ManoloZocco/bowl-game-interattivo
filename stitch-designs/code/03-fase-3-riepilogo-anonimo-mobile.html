@@ -1,0 +1,482 @@
+<!DOCTYPE html><html lang="it" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#003629","on-tertiary-fixed-variant":"#653e00","on-tertiary":"#ffffff","secondary-fixed-dim":"#4edea3","on-tertiary-fixed":"#2a1700","on-primary-fixed-variant":"#1d4f40","surface-container-high":"#e2e7ff","on-surface":"#131b2e","surface-dim":"#d2d9f4","error":"#ba1a1a","secondary":"#006c49","on-secondary-fixed":"#002113","primary-fixed-dim":"#9ed1bd","background":"#faf8ff","secondary-container":"#6cf8bb","on-error":"#ffffff","on-primary-container":"#8abda9","surface-container-highest":"#dae2fd","tertiary":"#442800","on-secondary-container":"#00714d","on-secondary-fixed-variant":"#005236","on-secondary":"#ffffff","inverse-surface":"#283044","outline-variant":"#c0c9c3","primary-fixed":"#baeed9","outline":"#707974","on-error-container":"#93000a","error-container":"#ffdad6","tertiary-fixed-dim":"#ffb95f","inverse-on-surface":"#eef0ff","on-background":"#131b2e","surface-container-lowest":"#ffffff","primary-container":"#1b4d3e","inverse-primary":"#9ed1bd","on-primary-fixed":"#002117","tertiary-fixed":"#ffddb8","surface-tint":"#376757","tertiary-container":"#623c00","secondary-fixed":"#6ffbbe","on-tertiary-container":"#f69f0d","surface-variant":"#dae2fd","surface":"#faf8ff","surface-container":"#eaedff","on-surface-variant":"#404945","on-primary":"#ffffff","surface-bright":"#faf8ff","surface-container-low":"#f2f3ff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xs":"0.25rem","space-sm":"0.5rem","gutter":"1.25rem","margin-desktop":"2.5rem","margin":"1rem","space-xl":"2.25rem","space-lg":"1.5rem","space-md":"1rem","gutter-desktop":"2rem"},fontFamily:{"body-md":["Inter"],"title-md":["Plus Jakarta Sans"],"body-sm":["Inter"],"body-lg":["Inter"],"label-md":["Inter"],"metric-display":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-lg":["Inter"],"label-sm":["Inter"],"headline-sm":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"]},fontSize:{"body-md":["16px",{"lineHeight":"24px","fontWeight":"400"}],"title-md":["18px",{"lineHeight":"26px","fontWeight":"600"}],"body-sm":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"metric-display":["40px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"800"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"700"}],"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-lg-mobile":["26px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.03em","fontWeight":"800"}],"display-lg-mobile":["34px",{"lineHeight":"42px","letterSpacing":"-0.02em","fontWeight":"800"}]}}}}</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(27,77,62,0.04)] pt-safe"><div class="h-16 px-gutter flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm"><button aria-label="Torna indietro" class="w-11 h-11 -ml-2 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><div class="flex flex-col"><span class="font-title-md text-title-md text-primary leading-tight truncate">Verifica Della Bowl</span><span class="font-label-sm text-label-sm text-secondary font-bold tracking-wide uppercase">Sessione NMLHM</span></div></div><div class="flex items-center gap-space-sm"><button aria-label="Esci dalla sessione" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-error hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">logout</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full pb-safe">
+<!-- Progress Stepper Tracker -->
+<div class="px-gutter pt-space-md pb-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between mb-space-xs">
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Fase Finale • Impatto Personale</span>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-bold">100% Completato</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden flex">
+<div class="bg-secondary h-full w-full rounded-full transition-all duration-700"></div>
+</div>
+<div class="flex justify-between items-center mt-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="text-primary font-semibold">1. Scelta Istintiva</span>
+<span class="text-primary font-semibold">2. Scelta Consapevole</span>
+<span class="text-secondary font-bold">3. Risultati &amp; Identità</span>
+</div>
+</div>
+</div>
+<!-- Celebration Card with Animated Confetti Particles -->
+<div class="px-gutter my-space-sm relative">
+<div class="relative overflow-hidden rounded-xl bg-primary text-on-primary p-space-lg shadow-md flex flex-col items-center text-center">
+<!-- Decorative Eco SVG Background Wave -->
+<svg class="absolute inset-0 w-full h-full opacity-10 pointer-events-none" fill="none" preserveAspectRatio="none" viewBox="0 0 400 200">
+<path d="M0,100 C150,180 250,20 400,100 L400,200 L0,200 Z" fill="#6cf8bb"></path>
+<circle cx="350" cy="40" fill="#baeed9" r="60"></circle>
+<circle cx="40" cy="160" fill="#6cf8bb" r="40"></circle>
+</svg>
+<!-- Canvas Confetti Container -->
+<canvas class="absolute inset-0 w-full h-full pointer-events-none z-0" id="celebration-canvas" width="350" height="326"></canvas>
+<!-- Badge Icon -->
+<div class="relative z-10 w-20 h-20 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-md mb-space-sm animate-bounce">
+<span class="material-symbols-outlined text-[42px]" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+</div>
+<div class="relative z-10 inline-flex items-center gap-space-xs bg-primary-container px-space-md py-1 rounded-full text-on-primary-container font-label-sm text-label-sm mb-space-xs">
+<span class="material-symbols-outlined text-[16px]">eco</span>
+        Missione Climatica Raggiunta
+      </div>
+<h1 class="relative z-10 font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tight text-on-primary leading-tight">
+        Ottimo lavoro!<br>Hai ridotto le emissioni del <span class="text-secondary-fixed">72%</span>!
+      </h1>
+<p class="relative z-10 font-body-sm text-body-sm text-primary-fixed-dim mt-space-xs max-w-xs">
+        Sostituendo proteine intensive e ingredienti ad alta impronta, la tua seconda composizione è un autentico modello rigenerativo.
+      </p>
+</div>
+</div>
+<!-- Anonymous Identity Callout Card -->
+<div class="px-gutter my-space-sm">
+<div class="bg-tertiary-fixed text-on-tertiary-fixed rounded-xl p-space-md shadow-sm relative overflow-hidden">
+<div class="flex items-start gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-tertiary text-tertiary-fixed flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+<span class="font-label-sm text-label-sm uppercase font-bold tracking-wider opacity-80 leading-none">ID</span>
+<span class="font-headline-sm text-headline-sm font-extrabold leading-none mt-0.5">#17</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs mb-0.5">
+<span class="font-title-md text-title-md font-bold text-on-tertiary-fixed">Tu sei il Partecipante #17</span>
+<span class="material-symbols-outlined text-tertiary text-[18px]">verified_user</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-tertiary-fixed-variant leading-snug">
+            Tieni a mente questo numero quando il docente mostrerà il <strong>tabellone di classe</strong> sul proiettore per confrontare le tue scelte in totale anonimato.
+          </p>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between text-on-tertiary-fixed font-label-sm text-label-sm">
+<span class="inline-flex items-center gap-1 opacity-90">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+          Identità crittografata nella sessione
+        </span>
+<button class="font-label-sm text-label-sm font-bold underline cursor-pointer hover:opacity-80" id="copy-id-btn">
+          Copia ID
+        </button>
+</div>
+</div>
+</div>
+<!-- Image Visual Cue: Sustainable Gastronomy -->
+<div class="px-gutter my-space-sm">
+<div class="w-full h-36 rounded-xl overflow-hidden relative shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Warm culinary flatlay photo of two colorful poke bowls on a light speckled ceramic tabletop. One bowl has rich salmon and avocado, while the adjacent bowl features roasted sweet potatoes, chickpeas, crunchy walnuts, and fresh herbs under soft daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQShP05a6oqe-uSBIKdZC5DRu2b8_-HFNnxZVBRRKm5_OCZ3RORlkbTLYdJ0k47cHGSiTI1Ut1nXqAu-K6K_7_uyLlpyh-ES2CHnzKHfJDWkAonsN-058_JjAIo_XC8QAPhWzwc2TxfQbfR2tcMThptyPa9Xh7VY79Hf6gzRNCLzMKNCGuhb7eF8-eLZ0Lm_L40myksUGYv7a-z52zuS6Z4tajwH4cRCPooGnn49Li6H3w754Eq_WMpQ">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent flex items-end p-space-md">
+<span class="text-on-primary font-title-md text-title-md font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-secondary-fixed">restaurant</span>
+          Il confronto delle due ricette
+        </span>
+</div>
+</div>
+</div>
+<!-- Side-by-side Comparative Receipt Card -->
+<div class="px-gutter my-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<span class="font-title-md text-title-md text-on-surface font-bold">Scontrino Ecologico</span>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Analisi LCA</span>
+</div>
+<!-- Two Columns Comparison -->
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- Bowl 1 Cieca -->
+<div class="bg-error-container/40 rounded-xl p-space-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-error mb-1">
+<span class="material-symbols-outlined text-[18px]">visibility_off</span>
+<span class="font-label-md text-label-md font-bold truncate">Bowl 1 (Cieca)</span>
+</div>
+<div class="font-headline-sm text-headline-sm font-extrabold text-on-error-container">
+              2.626 <span class="font-label-sm text-label-sm font-normal">g CO₂e</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">directions_car</span>
+              20,2 km auto
+            </div>
+<!-- Ingredients pill list -->
+<ul class="mt-space-sm space-y-1 font-label-sm text-label-sm text-on-surface-variant">
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></span>
+<span class="">Riso bianco</span>
+</li>
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></span>
+<span class="font-bold text-on-surface">Salmone norv.</span>
+</li>
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></span>
+<span class="">Avocado imp.</span>
+</li>
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></span>
+<span class="">Pomodorini serra</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-md pt-space-xs text-center font-label-sm text-label-sm text-error font-medium">
+            Impronta Elevata
+          </div>
+</div>
+<!-- Bowl 2 Consapevole -->
+<div class="bg-secondary-container/30 rounded-xl p-space-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-1 text-secondary mb-1">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-label-md text-label-md font-bold truncate">Bowl 2 (Clima)</span>
+</div>
+<div class="font-headline-sm text-headline-sm font-extrabold text-secondary">
+              735 <span class="font-label-sm text-label-sm font-normal">g CO₂e</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">directions_car</span>
+              5,6 km auto
+            </div>
+<!-- Ingredients pill list -->
+<ul class="mt-space-sm space-y-1 font-label-sm text-label-sm text-on-surface-variant">
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0"></span>
+<span class="">Patate dolci</span>
+</li>
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0"></span>
+<span class="font-bold text-on-surface">Ceci bio loc.</span>
+</li>
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0"></span>
+<span class="">Carote a km 0</span>
+</li>
+<li class="flex items-center gap-1 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0"></span>
+<span class="">Noci nostrane</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-md pt-space-xs text-center font-label-sm text-label-sm text-secondary font-bold">
+            Budget Planetario Riscalato
+          </div>
+</div>
+</div>
+<!-- Net Highlight Delta Box -->
+<div class="mt-space-md rounded-xl bg-secondary text-on-secondary p-space-md shadow-sm flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed flex-shrink-0">
+<span class="material-symbols-outlined text-[24px]">savings</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase font-bold tracking-wider text-secondary-fixed-dim">Risparmio Netto Realizzato</span>
+<span class="font-headline-sm text-headline-sm font-extrabold text-on-secondary leading-tight">
+            -1.891 g CO₂eq
+          </span>
+<p class="font-body-sm text-body-sm text-primary-fixed leading-tight mt-0.5">Pari a <strong>14,6 km</strong> in auto diesel non percorsi — come un viaggio a/r tra <strong>Siena e Monteriggioni</strong> per un singolo pasto!</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Category Breakdown Visualizer -->
+<div class="px-gutter my-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-bold">Distribuzione per Categoria</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tocca una categoria per confrontare i due scenari</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[24px]">donut_large</span>
+</div>
+<!-- Category Filter Tabs -->
+<div class="flex gap-space-xs mt-space-sm mb-space-md">
+<button class="cat-btn flex-1 py-1.5 px-2 rounded-xl bg-primary text-on-primary font-label-sm text-label-sm font-bold text-center transition-all" id="cat-protein-btn">
+          🥩 Proteine
+        </button>
+<button class="cat-btn flex-1 py-1.5 px-2 rounded-xl bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-bold text-center transition-all" id="cat-base-btn">
+          🍚 Basi
+        </button>
+<button class="cat-btn flex-1 py-1.5 px-2 rounded-xl bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-bold text-center transition-all" id="cat-extra-btn">
+          🥑 Extra/Topping
+        </button>
+</div>
+<!-- Comparative Bar Visual -->
+<div class="space-y-space-sm" id="breakdown-content">
+<!-- Visual Comparison Bars injected / manipulated via JS -->
+<div>
+<div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+<span class="font-bold text-error">Bowl 1 (Salmone 120g)</span>
+<span class="font-bold text-on-surface">1.820 g CO₂e (69%)</span>
+</div>
+<div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-error rounded-full transition-all duration-500" style="width: 82%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+<span class="font-bold text-secondary">Bowl 2 (Ceci bio 120g)</span>
+<span class="font-bold text-on-surface">210 g CO₂e (28%)</span>
+</div>
+<div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary rounded-full transition-all duration-500" style="width: 14%;"></div>
+</div>
+</div>
+<!-- Dynamic Context Note -->
+<div class="bg-surface-container rounded-xl p-space-sm text-on-surface font-body-sm text-body-sm mt-space-sm flex items-start gap-space-xs" id="cat-caption">
+<span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0">lightbulb</span>
+<span class="text-on-surface-variant">
+<strong>Fattore Chiave:</strong> Le proteine animali (soprattutto pesce da allevamento intensivo e carni rosse) pesano fino al 70-80% dell'impatto totale di un piatto a causa della catena alimentare e logistica refrigerata.
+          </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Classroom Discussion Prompt Pill Card -->
+<div class="px-gutter my-space-sm">
+<div class="bg-surface-container rounded-xl p-space-md shadow-sm flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[24px]">forum</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase font-bold tracking-wider text-secondary">Domanda di Gruppo</span>
+<h2 class="font-title-md text-title-md font-bold text-on-surface mt-0.5 leading-snug">
+          Cosa ti ha sorpreso di più? Il peso della proteina o l'origine degli alimenti?
+        </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 leading-normal">
+          Preparati ad argomentare la tua scelta con il resto della classe quando apparirà la graduatoria collettiva.
+        </p>
+</div>
+</div>
+</div>
+<!-- Secondary Photo Card: Sustainable Food Prep -->
+<div class="px-gutter my-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center gap-space-md">
+<img class="w-20 h-20 rounded-xl object-cover flex-shrink-0 shadow-sm" data-alt="Close-up aesthetic shot of hands seasoning fresh Mediterranean pulses, colorful legumes, and toasted seeds in rustic terracotta bowls, with rosemary and fresh vegetables around." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWvnKUx9GFN5Tlhr_XP1JokDKMbvceCaePhf93kz9wujuczLtDZoLImmW8EnIem_rm7QOCRCKffUDfcCs7JrlRH91V5e9gaRiYU96hJbd2DhGY2w7iKLDoy453XMyDzRjD4xsN6N6u1ZxMrkX5Dm1FhotqeZbtTJG9ByXEaLi3p0GsPG0uMdHoxrnguN3RHbVE9CukyuHNANRSJmPqXzWa7GP0ErZbRHZtoCBLzJ1etoZmBfbkkAqopA">
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Cultura Cibo</span>
+<span class="font-title-md text-title-md text-on-surface font-bold truncate">Dieta Mediterranea &amp; Pianeta</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-0.5">
+          I legumi locali non solo riducono la CO₂, ma rigenerano l'azoto nei suoli agricoli.
+        </p>
+</div>
+</div>
+</div>
+<!-- Action Buttons Section -->
+<div class="px-gutter my-space-md flex flex-col gap-space-sm">
+<!-- Sustainable Tips Button -->
+<button class="w-full bg-primary-container text-on-primary py-space-sm px-space-md rounded-xl font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-xs shadow-sm active:scale-[0.98] transition-transform" id="tips-modal-trigger">
+<span class="material-symbols-outlined text-[20px] text-secondary-fixed">psychology_alt</span>
+      Vedi suggerimenti e consigli sostenibili 🌿
+    </button>
+<!-- Classroom Status Button (Waiting) -->
+<div class="w-full bg-surface-container-high text-on-surface py-space-sm px-space-md rounded-xl font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping mr-1"></div>
+      In attesa che il docente apra la discussione...
+    </div>
+</div>
+<!-- Hidden Interactive Modal for Tips -->
+<div class="fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-gutter" id="tips-modal">
+<div class="bg-surface-container-lowest rounded-xl p-space-lg w-full max-w-lg shadow-xl relative max-h-[751px] overflow-y-auto">
+<div class="flex items-center justify-between pb-space-sm mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[24px]">energy_savings_leaf</span>
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Consigli Pratici Quotidiani</span>
+</div>
+<button class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors" id="tips-modal-close">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="space-y-space-md">
+<div class="flex gap-space-sm items-start">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold flex-shrink-0">1</div>
+<div>
+<div class="font-title-md text-title-md font-bold text-on-surface">La Regola del 70/30</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Componi il tuo piatto con il 70% di vegetali, cereali integrali e legumi. Lascia alle proteine animali un ruolo da contorno speciale.</p>
+</div>
+</div>
+<div class="flex gap-space-sm items-start">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold flex-shrink-0">2</div>
+<div>
+<div class="font-title-md text-title-md font-bold text-on-surface">Fai Attenzione alla Serra Calda</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">I pomodorini e le verdure fuori stagione coltivate in serre riscaldate a gasolio possono emettere più CO₂ di alcuni tagli di carne bianca locale.</p>
+</div>
+</div>
+<div class="flex gap-space-sm items-start">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold flex-shrink-0">3</div>
+<div>
+<div class="font-title-md text-title-md font-bold text-on-surface">Varietà dei Cereali</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Alterna il riso bianco (che emette metano nelle risaie allagate) con orzo, farro, patate e grano saraceno a basso consumo idrico.</p>
+</div>
+</div>
+</div>
+<button class="mt-space-lg w-full bg-primary text-on-primary py-space-sm rounded-xl font-label-lg text-label-lg font-bold" id="tips-modal-ok">
+        Ho Capito, Torna ai Risultati
+      </button>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    // 1. Interactive Confetti Canvas
+    const canvas = document.getElementById('celebration-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let width = canvas.width = canvas.parentElement.offsetWidth;
+      let height = canvas.height = canvas.parentElement.offsetHeight;
+
+      const colors = ['#6cf8bb', '#baeed9', '#ffddb8', '#ffffff', '#4edea3'];
+      const particles = [];
+
+      for (let i = 0; i < 42; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height * 0.4,
+          r: Math.random() * 4 + 2,
+          dx: (Math.random() - 0.5) * 2,
+          dy: Math.random() * 2 + 1,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          tilt: Math.random() * 10
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, false);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+
+          p.y += p.dy * 0.8;
+          p.x += Math.sin(p.tilt) * 0.5;
+          p.tilt += 0.05;
+
+          if (p.y > height) {
+            p.y = -10;
+            p.x = Math.random() * width;
+          }
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    // 2. Interactive Category Switcher
+    const dataBreakdown = {
+      protein: {
+        b1Label: 'Bowl 1 (Salmone 120g)',
+        b1Val: '1.820 g CO₂e (69%)',
+        b1Width: '82%',
+        b2Label: 'Bowl 2 (Ceci bio 120g)',
+        b2Val: '210 g CO₂e (28%)',
+        b2Width: '14%',
+        caption: '<strong>Fattore Chiave:</strong> Le proteine animali pesano fino al 70-80% dell\'impatto totale di un pasto standard a causa di foraggiamento intensivo e catene del freddo intercontinentali.'
+      },
+      base: {
+        b1Label: 'Bowl 1 (Riso Bianco 150g)',
+        b1Val: '510 g CO₂e (19%)',
+        b1Width: '40%',
+        b2Label: 'Bowl 2 (Patate dolci 150g)',
+        b2Val: '180 g CO₂e (24%)',
+        b2Width: '16%',
+        caption: '<strong>Fattore Chiave:</strong> Le risaie sommerse generano emissioni anaerobiche di gas metano (CH₄). Sostituire con tuberi o cereali rustici asciutti abbatte l\'impronta di oltre il 60%.'
+      },
+      extra: {
+        b1Label: 'Bowl 1 (Avocado + Serra 100g)',
+        b1Val: '296 g CO₂e (12%)',
+        b1Width: '26%',
+        b2Label: 'Bowl 2 (Carote + Noci 100g)',
+        b2Val: '345 g CO₂e (48%)',
+        b2Width: '29%',
+        caption: '<strong>Fattore Chiave:</strong> La frutta a guscio locale ha un\'impronta leggermente maggiore per via della densità calorica, ma vanta un assorbimento arboreo di carbonio positivo e zero aerei!'
+      }
+    };
+
+    const proteinBtn = document.getElementById('cat-protein-btn');
+    const baseBtn = document.getElementById('cat-base-btn');
+    const extraBtn = document.getElementById('cat-extra-btn');
+    const breakdownContent = document.getElementById('breakdown-content');
+
+    function selectCat(catKey, activeBtn) {
+      [proteinBtn, baseBtn, extraBtn].forEach(b => {
+        b.className = 'cat-btn flex-1 py-1.5 px-2 rounded-xl bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-bold text-center transition-all';
+      });
+      activeBtn.className = 'cat-btn flex-1 py-1.5 px-2 rounded-xl bg-primary text-on-primary font-label-sm text-label-sm font-bold text-center transition-all';
+
+      const d = dataBreakdown[catKey];
+      breakdownContent.innerHTML = `
+        <div>
+          <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+            <span class="font-bold text-error">${d.b1Label}</span>
+            <span class="font-bold text-on-surface">${d.b1Val}</span>
+          </div>
+          <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+            <div class="h-full bg-error rounded-full transition-all duration-500" style="width: ${d.b1Width};"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+            <span class="font-bold text-secondary">${d.b2Label}</span>
+            <span class="font-bold text-on-surface">${d.b2Val}</span>
+          </div>
+          <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+            <div class="h-full bg-secondary rounded-full transition-all duration-500" style="width: ${d.b2Width};"></div>
+          </div>
+        </div>
+        <div class="bg-surface-container rounded-xl p-space-sm text-on-surface font-body-sm text-body-sm mt-space-sm flex items-start gap-space-xs">
+          <span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0">lightbulb</span>
+          <span class="text-on-surface-variant">${d.caption}</span>
+        </div>
+      `;
+    }
+
+    if (proteinBtn) proteinBtn.addEventListener('click', () => selectCat('protein', proteinBtn));
+    if (baseBtn) baseBtn.addEventListener('click', () => selectCat('base', baseBtn));
+    if (extraBtn) extraBtn.addEventListener('click', () => selectCat('extra', extraBtn));
+
+    // 3. Modal Controls
+    const modal = document.getElementById('tips-modal');
+    const trigger = document.getElementById('tips-modal-trigger');
+    const closeBtn = document.getElementById('tips-modal-close');
+    const okBtn = document.getElementById('tips-modal-ok');
+
+    function toggleModal(show) {
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    if (trigger) trigger.addEventListener('click', () => toggleModal(true));
+    if (closeBtn) closeBtn.addEventListener('click', () => toggleModal(false));
+    if (okBtn) okBtn.addEventListener('click', () => toggleModal(false));
+
+    // 4. Copy ID Micro-interaction
+    const copyBtn = document.getElementById('copy-id-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard?.writeText('Partecipante #17');
+        copyBtn.innerText = 'Copiato! ✓';
+        setTimeout(() => {
+          copyBtn.innerText = 'Copia ID';
+        }, 2000);
+      });
+    }
+  })();
+</script></main>
+
+</body></html>

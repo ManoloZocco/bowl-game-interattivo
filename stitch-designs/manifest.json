@@ -1,0 +1,62 @@
+[
+  {
+    "num": "01",
+    "slug": "fase-1-scelta-cieca-mobile",
+    "title": "Fase 1: Scelta alla Cieca (Mobile)",
+    "screen_id": "a883378b728942af8c49da6f6cdb27dd",
+    "deviceType": "MOBILE",
+    "width": "780",
+    "height": "3882",
+    "screenshot_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/screenshots/01-fase-1-scelta-cieca-mobile.png",
+    "artifact_screenshot": "/Users/manolozocco/.gemini/antigravity-cli/brain/baf9939b-463d-488b-abf9-bfef8aef5a17/stitch-01-fase-1-scelta-cieca-mobile.png",
+    "code_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/code/01-fase-1-scelta-cieca-mobile.html"
+  },
+  {
+    "num": "02",
+    "slug": "fase-2-scelta-consapevole-mobile",
+    "title": "Fase 2: Scelta Consapevole (Mobile)",
+    "screen_id": "44b76f006b9c4072874412e9ba5a68cb",
+    "deviceType": "MOBILE",
+    "width": "780",
+    "height": "3992",
+    "screenshot_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/screenshots/02-fase-2-scelta-consapevole-mobile.png",
+    "artifact_screenshot": "/Users/manolozocco/.gemini/antigravity-cli/brain/baf9939b-463d-488b-abf9-bfef8aef5a17/stitch-02-fase-2-scelta-consapevole-mobile.png",
+    "code_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/code/02-fase-2-scelta-consapevole-mobile.html"
+  },
+  {
+    "num": "03",
+    "slug": "fase-3-riepilogo-anonimo-mobile",
+    "title": "Fase 3: Riepilogo & Identit\u00e0 Anonima (Mobile)",
+    "screen_id": "10997f4abc724d6b970842820878bfa0",
+    "deviceType": "MOBILE",
+    "width": "780",
+    "height": "4316",
+    "screenshot_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/screenshots/03-fase-3-riepilogo-anonimo-mobile.png",
+    "artifact_screenshot": "/Users/manolozocco/.gemini/antigravity-cli/brain/baf9939b-463d-488b-abf9-bfef8aef5a17/stitch-03-fase-3-riepilogo-anonimo-mobile.png",
+    "code_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/code/03-fase-3-riepilogo-anonimo-mobile.html"
+  },
+  {
+    "num": "04",
+    "slug": "landing-selezione-ruolo-desktop",
+    "title": "Landing & Selezione Ruolo (Desktop)",
+    "screen_id": "c17b9dc7fee1416ba5a98bf8a6da0d9c",
+    "deviceType": "DESKTOP",
+    "width": "2560",
+    "height": "2532",
+    "screenshot_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/screenshots/04-landing-selezione-ruolo-desktop.png",
+    "artifact_screenshot": "/Users/manolozocco/.gemini/antigravity-cli/brain/baf9939b-463d-488b-abf9-bfef8aef5a17/stitch-04-landing-selezione-ruolo-desktop.png",
+    "code_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/code/04-landing-selezione-ruolo-desktop.html"
+  },
+  {
+    "num": "05",
+    "slug": "dashboard-docente-desktop",
+    "title": "Dashboard Docente & Proiettore LIM (Desktop 16:9)",
+    "screen_id": "71db5a28280e4f52a73b97e7f953dae8",
+    "deviceType": "DESKTOP",
+    "width": "2560",
+    "height": "3500",
+    "screenshot_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/screenshots/05-dashboard-docente-desktop.png",
+    "artifact_screenshot": "/Users/manolozocco/.gemini/antigravity-cli/brain/baf9939b-463d-488b-abf9-bfef8aef5a17/stitch-05-dashboard-docente-desktop.png",
+    "code_file": "/Users/manolozocco/Documents/Ricerca/bowl-game-interattivo/stitch-designs/code/05-dashboard-docente-desktop.html"
+  }
+]

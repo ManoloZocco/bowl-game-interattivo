@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+
+<html lang="it"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#003629","on-tertiary-fixed-variant":"#653e00","on-tertiary":"#ffffff","secondary-fixed-dim":"#4edea3","on-tertiary-fixed":"#2a1700","on-primary-fixed-variant":"#1d4f40","surface-container-high":"#e2e7ff","on-surface":"#131b2e","surface-dim":"#d2d9f4","error":"#ba1a1a","secondary":"#006c49","on-secondary-fixed":"#002113","primary-fixed-dim":"#9ed1bd","background":"#faf8ff","secondary-container":"#6cf8bb","on-error":"#ffffff","on-primary-container":"#8abda9","surface-container-highest":"#dae2fd","tertiary":"#442800","on-secondary-container":"#00714d","on-secondary-fixed-variant":"#005236","on-secondary":"#ffffff","inverse-surface":"#283044","outline-variant":"#c0c9c3","primary-fixed":"#baeed9","outline":"#707974","on-error-container":"#93000a","error-container":"#ffdad6","tertiary-fixed-dim":"#ffb95f","inverse-on-surface":"#eef0ff","on-background":"#131b2e","surface-container-lowest":"#ffffff","primary-container":"#1b4d3e","inverse-primary":"#9ed1bd","on-primary-fixed":"#002117","tertiary-fixed":"#ffddb8","surface-tint":"#376757","tertiary-container":"#623c00","secondary-fixed":"#6ffbbe","on-tertiary-container":"#f69f0d","surface-variant":"#dae2fd","surface":"#faf8ff","surface-container":"#eaedff","on-surface-variant":"#404945","on-primary":"#ffffff","surface-bright":"#faf8ff","surface-container-low":"#f2f3ff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xs":"0.25rem","space-sm":"0.5rem","gutter":"1.25rem","margin-desktop":"2.5rem","margin":"1rem","space-xl":"2.25rem","space-lg":"1.5rem","space-md":"1rem","gutter-desktop":"2rem"},fontFamily:{"body-md":["Inter"],"title-md":["Plus Jakarta Sans"],"body-sm":["Inter"],"body-lg":["Inter"],"label-md":["Inter"],"metric-display":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-lg":["Inter"],"label-sm":["Inter"],"headline-sm":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"]},fontSize:{"body-md":["16px",{"lineHeight":"24px","fontWeight":"400"}],"title-md":["18px",{"lineHeight":"26px","fontWeight":"600"}],"body-sm":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"metric-display":["40px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"800"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"700"}],"headline-sm":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-lg-mobile":["26px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.03em","fontWeight":"800"}],"display-lg-mobile":["34px",{"lineHeight":"42px","letterSpacing":"-0.02em","fontWeight":"800"}]}}}}</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(27,77,62,0.04)] pt-safe"><div class="h-16 px-gutter flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-full shadow-[0_1px_3px_rgba(27,77,62,0.04)]"><span class="material-symbols-outlined text-secondary text-[18px]">eco</span><span class="font-label-sm text-label-sm text-primary uppercase truncate">UniSi Ecodynamics</span></div><div class="flex items-center gap-1 bg-secondary-container/60 px-space-sm py-1 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-secondary-container tracking-wider font-bold">NMLHM</span></div></div><div class="flex items-center gap-space-sm"><button aria-label="Esci dalla sessione" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-error hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[20px]">logout</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<div class="px-margin pt-space-md pb-space-lg flex flex-col gap-space-md">
+<!-- Stepper Indicator -->
+<div class="flex flex-col gap-space-xs bg-surface-container-low p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">visibility_off</span>
+          Fase 1 di 3 · Blind Challenge
+        </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Passo 1/3</span>
+</div>
+<!-- Progress Bar (No borders, pure background switch) -->
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary rounded-full transition-all duration-500" style="width: 33.33%;"></div>
+</div>
+<div class="mt-space-xs">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Scelte alla cieca</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          Crea la tua bowl preferita senza guardare i dati climatici. Scegli in piena libertà ciò che mangeresti davvero oggi!
+        </p>
+</div>
+</div>
+<!-- Interactive Bowl Preview Canvas -->
+<div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-md overflow-hidden flex flex-col items-center justify-center min-h-[220px]">
+<div class="absolute -top-12 -right-12 w-36 h-36 bg-secondary-container/30 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-8 -left-8 w-32 h-32 bg-surface-container-high/40 rounded-full blur-xl pointer-events-none"></div>
+<!-- Stylized Bowl Ceramic Base with Visual Food Layers -->
+<div class="relative w-48 h-36 flex flex-col items-center justify-end">
+<!-- Floating Visual Food Composition -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="bowl-elements-container">
+<!-- Dressing drop glow -->
+<div class="absolute top-2 w-8 h-8 rounded-full bg-tertiary-fixed/80 flex items-center justify-center text-[16px] shadow-sm animate-bounce" id="visual-dressing" style="animation-duration: 2.5s;">
+            🫒
+          </div>
+<!-- Protein layer -->
+<div class="absolute top-8 left-6 w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-[22px] shadow-sm transform -rotate-6 transition-all duration-300" id="visual-protein">
+            🐟
+          </div>
+<!-- Extra 1 -->
+<div class="absolute top-7 right-6 w-11 h-11 rounded-full bg-secondary-container flex items-center justify-center text-[20px] shadow-sm transform rotate-12 transition-all duration-300" id="visual-extra-1">
+            🥑
+          </div>
+<!-- Extra 2 -->
+<div class="absolute top-14 right-12 w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-[18px] shadow-sm transform -rotate-12 transition-all duration-300" id="visual-extra-2">
+            🍅
+          </div>
+<!-- Base layer representation -->
+<div class="absolute bottom-6 w-28 h-10 rounded-full bg-surface-container-highest flex items-center justify-center shadow-inner text-[18px] text-on-surface-variant font-label-sm" id="visual-base">
+            🍚 Riso bianco
+          </div>
+</div>
+<!-- Ceramic Bowl Silhouette SVG -->
+<svg class="w-48 h-20 drop-shadow-md text-primary-container" fill="none" viewbox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="100" cy="18" fill="#E2E7FF" fill-opacity="0.8" rx="90" ry="14"></ellipse>
+<path d="M10 18 C18 68, 62 86, 100 86 C138 86, 182 68, 190 18 Z" fill="currentColor"></path>
+<path d="M20 22 C30 60, 68 76, 100 76 C132 76, 170 60, 180 22 Z" fill="#245A4B" fill-opacity="0.6"></path>
+<ellipse cx="100" cy="85" fill="#002117" fill-opacity="0.2" rx="38" ry="4"></ellipse>
+</svg>
+</div>
+<!-- Live Recipe Mini Summary Chips -->
+<div class="mt-space-sm w-full flex items-center justify-center gap-1.5 flex-wrap" id="selected-summary-chips">
+<span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span id="chip-base-label">Riso bianco</span>
+</span>
+<span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span id="chip-protein-label">Salmone</span>
+</span>
+<span class="px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span id="chip-extras-count">2 Extra</span>
+</span>
+</div>
+</div>
+<!-- SELECTION STEP 1: DIMENSIONE -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wide">1. Scegli la dimensione</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Capacità proteine</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm" id="size-options">
+<!-- Option Regular (Selected) -->
+<button class="size-btn flex flex-col p-space-md rounded-xl bg-secondary-container text-on-secondary-container shadow-sm text-left transition-all active:scale-[0.98]" data-max-protein="1" data-size="regular" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-title-md text-title-md font-bold">Regular</span>
+<span class="material-symbols-outlined text-[20px] check-icon">check_circle</span>
+</div>
+<span class="font-body-sm text-body-sm opacity-90 mt-1">1 Proteina inclusa</span>
+<span class="mt-2 text-[11px] font-label-sm bg-surface-container-lowest/60 px-2 py-0.5 rounded-full w-max text-on-secondary-container">Classica &amp; equilibrata</span>
+</button>
+<!-- Option Large -->
+<button class="size-btn flex flex-col p-space-md rounded-xl bg-surface-container-lowest text-on-surface shadow-sm text-left transition-all active:scale-[0.98]" data-max-protein="2" data-size="large" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-title-md text-title-md font-bold">Large</span>
+<span class="material-symbols-outlined text-[20px] check-icon hidden">check_circle</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">2 Proteine a scelta</span>
+<span class="mt-2 text-[11px] font-label-sm bg-surface-container px-2 py-0.5 rounded-full w-max text-on-surface-variant">Più ricca &amp; sostanziosa</span>
+</button>
+</div>
+</div>
+<!-- SELECTION STEP 2: BASE -->
+<div class="flex flex-col gap-space-xs mt-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wide">2. Scegli la base</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">1 selezionata</span>
+</div>
+<div class="flex flex-wrap gap-2" id="base-options">
+<button class="base-btn px-space-md py-2.5 rounded-full font-label-lg text-label-lg flex items-center gap-1.5 transition-all bg-primary text-on-primary shadow-sm" data-base="🍚 Riso bianco" type="button">
+<span>🍚</span>
+<span>Riso bianco</span>
+</button>
+<button class="base-btn px-space-md py-2.5 rounded-full font-label-lg text-label-lg flex items-center gap-1.5 transition-all bg-surface-container-lowest text-on-surface shadow-sm" data-base="🖤 Riso venere" type="button">
+<span>🖤</span>
+<span>Riso venere</span>
+</button>
+<button class="base-btn px-space-md py-2.5 rounded-full font-label-lg text-label-lg flex items-center gap-1.5 transition-all bg-surface-container-lowest text-on-surface shadow-sm" data-base="🌾 Riso integrale" type="button">
+<span>🌾</span>
+<span>Riso integrale</span>
+</button>
+<button class="base-btn px-space-md py-2.5 rounded-full font-label-lg text-label-lg flex items-center gap-1.5 transition-all bg-surface-container-lowest text-on-surface shadow-sm" data-base="🥔 Patate dolci" type="button">
+<span>🥔</span>
+<span>Patate dolci</span>
+</button>
+<button class="base-btn px-space-md py-2.5 rounded-full font-label-lg text-label-lg flex items-center gap-1.5 transition-all bg-surface-container-lowest text-on-surface shadow-sm" data-base="🍜 Noodles" type="button">
+<span>🍜</span>
+<span>Noodles</span>
+</button>
+</div>
+</div>
+<!-- SELECTION STEP 3: PROTEINE (Blind - NO CO2 shown) -->
+<div class="flex flex-col gap-space-xs mt-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wide">3. Proteine</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium" id="protein-instruction">Scegli 1 ingrediente</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm" id="protein-options">
+<!-- Salmone (Selected by default) -->
+<button class="protein-btn p-space-sm rounded-xl bg-secondary-container text-on-secondary-container shadow-sm flex items-center gap-space-sm text-left transition-all active:scale-[0.98]" data-emoji="🐟" data-protein="Salmone" type="button">
+<span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container-lowest/80 flex items-center justify-center shrink-0">🐟</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-lg text-label-lg font-bold truncate">Salmone fresco</p>
+<p class="font-label-sm text-label-sm opacity-80">120g</p>
+</div>
+</button>
+<!-- Manzo -->
+<button class="protein-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center gap-space-sm text-left transition-all active:scale-[0.98]" data-emoji="🥩" data-protein="Manzo" type="button">
+<span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">🥩</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-lg text-label-lg font-bold truncate">Manzo marinato</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">120g</p>
+</div>
+</button>
+<!-- Tofu -->
+<button class="protein-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center gap-space-sm text-left transition-all active:scale-[0.98]" data-emoji="🌱" data-protein="Tofu" type="button">
+<span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">🌱</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-lg text-label-lg font-bold truncate">Tofu dorato</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">130g</p>
+</div>
+</button>
+<!-- Ceci -->
+<button class="protein-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center gap-space-sm text-left transition-all active:scale-[0.98]" data-emoji="🧆" data-protein="Ceci" type="button">
+<span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">🧆</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-lg text-label-lg font-bold truncate">Ceci speziati</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">130g</p>
+</div>
+</button>
+<!-- Uova -->
+<button class="protein-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center gap-space-sm text-left transition-all active:scale-[0.98]" data-emoji="🥚" data-protein="Uova" type="button">
+<span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">🥚</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-lg text-label-lg font-bold truncate">Uova bio</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">2 pz</p>
+</div>
+</button>
+<!-- Gamberi -->
+<button class="protein-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center gap-space-sm text-left transition-all active:scale-[0.98]" data-emoji="🍤" data-protein="Gamberi" type="button">
+<span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">🍤</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-lg text-label-lg font-bold truncate">Gamberi</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">110g</p>
+</div>
+</button>
+<!-- Pollo (Span across full width on mobile) -->
+<button class="protein-btn col-span-2 p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center gap-space-sm text-left transition-all active:scale-[0.98]" data-emoji="🍗" data-protein="Pollo" type="button">
+<span class="text-[28px] w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0">🍗</span>
+<div class="min-w-0 flex-1">
+<p class="font-label-lg text-label-lg font-bold truncate">Pollo grigliato</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">120g marinato al limone</p>
+</div>
+</button>
+</div>
+</div>
+<!-- SELECTION STEP 4: INGREDIENTI EXTRA (MULTI-SELECT) -->
+<div class="flex flex-col gap-space-xs mt-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wide">4. Ingredienti Extra</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold" id="extra-count-badge">2 selezionati</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm" id="extra-options">
+<!-- Avocado (Selected) -->
+<button class="extra-btn p-space-sm rounded-xl bg-secondary-container text-on-secondary-container shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.98]" data-emoji="🥑" data-extra="Avocado" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="text-[20px]">🥑</span>
+<span class="font-label-md text-label-md truncate">Avocado</span>
+</div>
+<span class="material-symbols-outlined text-[18px]">check</span>
+</button>
+<!-- Pomodorini (Selected) -->
+<button class="extra-btn p-space-sm rounded-xl bg-secondary-container text-on-secondary-container shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.98]" data-emoji="🍅" data-extra="Pomodorini" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="text-[20px]">🍅</span>
+<span class="font-label-md text-label-md truncate">Pomodorini</span>
+</div>
+<span class="material-symbols-outlined text-[18px]">check</span>
+</button>
+<!-- Cetrioli -->
+<button class="extra-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.98]" data-emoji="🥒" data-extra="Cetrioli" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="text-[20px]">🥒</span>
+<span class="font-label-md text-label-md truncate">Cetrioli &amp; Zucchine</span>
+</div>
+<span class="material-symbols-outlined text-[18px] opacity-20">add</span>
+</button>
+<!-- Carote -->
+<button class="extra-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.98]" data-emoji="🥕" data-extra="Carote" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="text-[20px]">🥕</span>
+<span class="font-label-md text-label-md truncate">Carote julienne</span>
+</div>
+<span class="material-symbols-outlined text-[18px] opacity-20">add</span>
+</button>
+<!-- Ananas -->
+<button class="extra-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.98]" data-emoji="🍍" data-extra="Ananas" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="text-[20px]">🍍</span>
+<span class="font-label-md text-label-md truncate">Ananas fresco</span>
+</div>
+<span class="material-symbols-outlined text-[18px] opacity-20">add</span>
+</button>
+<!-- Noci -->
+<button class="extra-btn p-space-sm rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.98]" data-emoji="🌰" data-extra="Noci" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="text-[20px]">🌰</span>
+<span class="font-label-md text-label-md truncate">Noci e Mandorle</span>
+</div>
+<span class="material-symbols-outlined text-[18px] opacity-20">add</span>
+</button>
+</div>
+</div>
+<!-- SELECTION STEP 5: CONDIMENTO -->
+<div class="flex flex-col gap-space-xs mt-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-primary uppercase font-bold tracking-wide">5. Condimento &amp; Dressing</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">1 selezionato</span>
+</div>
+<div class="flex flex-col gap-2" id="dressing-options">
+<!-- Olio EVO e Limone (Selected) -->
+<button class="dressing-btn p-space-sm px-space-md rounded-xl bg-primary text-on-primary shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.99]" data-dressing="🫒 Olio EVO e Limone" type="button">
+<div class="flex items-center gap-space-sm">
+<span class="text-[22px]">🫒</span>
+<div>
+<p class="font-title-md text-title-md font-bold">Olio EVO e Limone</p>
+<p class="font-body-sm text-body-sm opacity-80">Semplice, fruttato e naturale</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[22px]">radio_button_checked</span>
+</button>
+<!-- Soy & Ginger -->
+<button class="dressing-btn p-space-sm px-space-md rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.99]" data-dressing="🥢 Soy &amp; Ginger" type="button">
+<div class="flex items-center gap-space-sm">
+<span class="text-[22px]">🥢</span>
+<div>
+<p class="font-title-md text-title-md font-bold">Soy &amp; Ginger</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Salsa asiatica con zenzero fresco</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[22px] text-on-surface-variant">radio_button_unchecked</span>
+</button>
+<!-- Tahina verde -->
+<button class="dressing-btn p-space-sm px-space-md rounded-xl bg-surface-container-lowest text-on-surface shadow-sm flex items-center justify-between text-left transition-all active:scale-[0.99]" data-dressing="🥣 Tahina verde" type="button">
+<div class="flex items-center gap-space-sm">
+<span class="text-[22px]">🥣</span>
+<div>
+<p class="font-title-md text-title-md font-bold">Tahina verde</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sesamo tostato, prezzemolo e aglio</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[22px] text-on-surface-variant">radio_button_unchecked</span>
+</button>
+</div>
+</div>
+<!-- Educational Context Mini-Card -->
+<div class="mt-space-sm p-space-md bg-surface-container-high rounded-xl flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[24px] shrink-0">psychology</span>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Perché questa fase è alla cieca?</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          Per misurare le nostre reali preferenze spontanee prima di confrontarci con i dati di emissione scientifici forniti dall'Ecodynamics Group di Siena.
+        </span>
+</div>
+</div>
+</div>
+<!-- Sticky Bottom Action Deck (Nested within flow, lifted above navigation) -->
+<div class="sticky bottom-0 w-full z-40 bg-surface/95 backdrop-blur-md px-margin py-space-sm shadow-[0_-4px_16px_rgba(27,77,62,0.08)] flex flex-col gap-2">
+<!-- Live Selection Mini Count -->
+<div class="flex items-center justify-between px-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Riepilogo Bowl:</span>
+<span class="font-label-md text-label-md text-primary font-bold" id="bottom-summary-string">1 Base · 1 Proteina · 2 Extra</span>
+</div>
+<!-- Confirm Button -->
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-3.5 px-space-lg rounded-xl font-headline-sm text-headline-sm flex items-center justify-center gap-space-sm shadow-md transition-all active:scale-[0.98]" id="confirm-bowl-btn" type="button">
+<span>Conferma la tua Bowl (Fase 1)</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<script>
+  (function() {
+    // State management for blind selection
+    const state = {
+      size: 'regular',
+      maxProteins: 1,
+      base: '🍚 Riso bianco',
+      proteins: [{ name: 'Salmone', emoji: '🐟' }],
+      extras: [
+        { name: 'Avocado', emoji: '🥑' },
+        { name: 'Pomodorini', emoji: '🍅' }
+      ],
+      dressing: '🫒 Olio EVO e Limone'
+    };
+
+    const updateDOM = () => {
+      // 1. Update summary chips & bottom string
+      const baseChip = document.getElementById('chip-base-label');
+      const proteinChip = document.getElementById('chip-protein-label');
+      const extrasChip = document.getElementById('chip-extras-count');
+      const bottomSummary = document.getElementById('bottom-summary-string');
+
+      if (baseChip) baseChip.textContent = state.base.replace(/^[^\s]+\s/, '');
+      if (proteinChip) proteinChip.textContent = state.proteins.map(p => p.name).join(' + ') || 'Nessuna';
+      if (extrasChip) extrasChip.textContent = `${state.extras.length} Extra`;
+
+      if (bottomSummary) {
+        bottomSummary.textContent = `1 Base · ${state.proteins.length} Proteina${state.proteins.length > 1 ? 'e' : ''} · ${state.extras.length} Extra`;
+      }
+
+      // 2. Update Bowl Visual preview
+      const visualBase = document.getElementById('visual-base');
+      const visualProtein = document.getElementById('visual-protein');
+      const visualExtra1 = document.getElementById('visual-extra-1');
+      const visualExtra2 = document.getElementById('visual-extra-2');
+      const visualDressing = document.getElementById('visual-dressing');
+
+      if (visualBase) visualBase.textContent = state.base;
+      if (visualProtein) {
+        if (state.proteins.length > 0) {
+          visualProtein.textContent = state.proteins[0].emoji;
+          visualProtein.style.display = 'flex';
+        } else {
+          visualProtein.style.display = 'none';
+        }
+      }
+      if (visualExtra1) {
+        if (state.extras[0]) {
+          visualExtra1.textContent = state.extras[0].emoji;
+          visualExtra1.style.display = 'flex';
+        } else {
+          visualExtra1.style.display = 'none';
+        }
+      }
+      if (visualExtra2) {
+        if (state.extras[1]) {
+          visualExtra2.textContent = state.extras[1].emoji;
+          visualExtra2.style.display = 'flex';
+        } else {
+          visualExtra2.style.display = 'none';
+        }
+      }
+      if (visualDressing) {
+        visualDressing.textContent = state.dressing.slice(0, 2);
+      }
+
+      // Update Extra Counter Badge
+      const extraCountBadge = document.getElementById('extra-count-badge');
+      if (extraCountBadge) {
+        extraCountBadge.textContent = `${state.extras.length} selezionat${state.extras.length === 1 ? 'o' : 'i'}`;
+      }
+    };
+
+    // Size Handlers
+    const sizeBtns = document.querySelectorAll('.size-btn');
+    sizeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sizeType = btn.dataset.size;
+        state.size = sizeType;
+        state.maxProteins = parseInt(btn.dataset.maxProtein, 10);
+
+        sizeBtns.forEach(b => {
+          const icon = b.querySelector('.check-icon');
+          if (b === btn) {
+            b.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+            b.classList.add('bg-secondary-container', 'text-on-secondary-container');
+            if (icon) icon.classList.remove('hidden');
+          } else {
+            b.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+            b.classList.add('bg-surface-container-lowest', 'text-on-surface');
+            if (icon) icon.classList.add('hidden');
+          }
+        });
+
+        // If reduced to 1 and had 2, trim proteins
+        if (state.proteins.length > state.maxProteins) {
+          state.proteins = state.proteins.slice(0, state.maxProteins);
+          renderProteins();
+        }
+
+        const proteinInstr = document.getElementById('protein-instruction');
+        if (proteinInstr) {
+          proteinInstr.textContent = state.maxProteins === 1 ? 'Scegli 1 ingrediente' : 'Scegli fino a 2 ingredienti';
+        }
+        updateDOM();
+      });
+    });
+
+    // Base Handlers
+    const baseBtns = document.querySelectorAll('.base-btn');
+    baseBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.base = btn.dataset.base;
+        baseBtns.forEach(b => {
+          if (b === btn) {
+            b.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+            b.classList.add('bg-primary', 'text-on-primary');
+          } else {
+            b.classList.remove('bg-primary', 'text-on-primary');
+            b.classList.add('bg-surface-container-lowest', 'text-on-surface');
+          }
+        });
+        updateDOM();
+      });
+    });
+
+    // Protein Handlers
+    const proteinBtns = document.querySelectorAll('.protein-btn');
+    const renderProteins = () => {
+      proteinBtns.forEach(btn => {
+        const pName = btn.dataset.protein;
+        const isSelected = state.proteins.some(p => p.name === pName);
+        if (isSelected) {
+          btn.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+          btn.classList.add('bg-secondary-container', 'text-on-secondary-container');
+        } else {
+          btn.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+          btn.classList.add('bg-surface-container-lowest', 'text-on-surface');
+        }
+      });
+    };
+
+    proteinBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pName = btn.dataset.protein;
+        const pEmoji = btn.dataset.emoji;
+        const existingIndex = state.proteins.findIndex(p => p.name === pName);
+
+        if (existingIndex > -1) {
+          if (state.proteins.length > 1) {
+            state.proteins.splice(existingIndex, 1);
+          }
+        } else {
+          if (state.proteins.length >= state.maxProteins) {
+            state.proteins.shift(); // remove first
+          }
+          state.proteins.push({ name: pName, emoji: pEmoji });
+        }
+        renderProteins();
+        updateDOM();
+      });
+    });
+
+    // Extra Handlers (Multi-select)
+    const extraBtns = document.querySelectorAll('.extra-btn');
+    extraBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const eName = btn.dataset.extra;
+        const eEmoji = btn.dataset.emoji;
+        const existingIdx = state.extras.findIndex(e => e.name === eName);
+        const icon = btn.querySelector('.material-symbols-outlined');
+
+        if (existingIdx > -1) {
+          state.extras.splice(existingIdx, 1);
+          btn.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+          btn.classList.add('bg-surface-container-lowest', 'text-on-surface');
+          if (icon) {
+            icon.textContent = 'add';
+            icon.classList.add('opacity-20');
+          }
+        } else {
+          state.extras.push({ name: eName, emoji: eEmoji });
+          btn.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+          btn.classList.add('bg-secondary-container', 'text-on-secondary-container');
+          if (icon) {
+            icon.textContent = 'check';
+            icon.classList.remove('opacity-20');
+          }
+        }
+        updateDOM();
+      });
+    });
+
+    // Dressing Handlers
+    const dressingBtns = document.querySelectorAll('.dressing-btn');
+    dressingBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.dressing = btn.dataset.dressing;
+        dressingBtns.forEach(b => {
+          const icon = b.querySelector('.material-symbols-outlined');
+          if (b === btn) {
+            b.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+            b.classList.add('bg-primary', 'text-on-primary');
+            if (icon) {
+              icon.textContent = 'radio_button_checked';
+              icon.classList.remove('text-on-surface-variant');
+            }
+          } else {
+            b.classList.remove('bg-primary', 'text-on-primary');
+            b.classList.add('bg-surface-container-lowest', 'text-on-surface');
+            if (icon) {
+              icon.textContent = 'radio_button_unchecked';
+              icon.classList.add('text-on-surface-variant');
+            }
+          }
+        });
+        updateDOM();
+      });
+    });
+
+    // Button Confirmation feedback
+    const confirmBtn = document.getElementById('confirm-bowl-btn');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        confirmBtn.innerHTML = `
+          <span class="material-symbols-outlined text-[20px] animate-spin">refresh</span>
+          <span>Analisi impronta in corso...</span>
+        `;
+        setTimeout(() => {
+          // Feedback pulse before navigation
+          confirmBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            <span>Bowl Salvata! Passaggio a Fase 2</span>
+          `;
+          confirmBtn.classList.remove('bg-primary');
+          confirmBtn.classList.add('bg-secondary');
+        }, 600);
+      });
+    }
+
+    // Initial render call
+    updateDOM();
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_16px_rgba(27,77,62,0.06)]" data-active-classes="text-secondary font-semibold"><div class="flex justify-around items-center h-16 px-space-sm"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] transition-colors text-secondary font-semibold" data-path="crea-la-tua-bowl" href="#"><span class="material-symbols-outlined text-[24px]">skillet</span><span class="font-label-sm text-label-sm mt-0.5">Componi</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] text-on-surface-variant hover:text-on-surface transition-colors" data-path="impronta-ecologica" href="#"><span class="material-symbols-outlined text-[24px]">speed</span><span class="font-label-sm text-label-sm mt-0.5">Impronta</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] text-on-surface-variant hover:text-on-surface transition-colors" data-path="classifica-sessione" href="#"><span class="material-symbols-outlined text-[24px]">leaderboard</span><span class="font-label-sm text-label-sm mt-0.5">Classifica</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] text-on-surface-variant hover:text-on-surface transition-colors" data-path="guida-ingredienti" href="#"><span class="material-symbols-outlined text-[24px]">menu_book</span><span class="font-label-sm text-label-sm mt-0.5">Guida</span></a></div></nav></body></html>
