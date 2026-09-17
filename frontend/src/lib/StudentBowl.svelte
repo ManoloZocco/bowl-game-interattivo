@@ -25,6 +25,8 @@
   let summary: Awaited<ReturnType<typeof fetchParticipantBowls>> | null = null
   let copiedId = false
   let activeTab: 'componi' | 'impronta' | 'classifica' | 'guida' = 'componi'
+  let breakdownCat: 'protein' | 'base' | 'extra' = 'protein'
+  let showTipsModal = false
 
   // Default fallback values (matching Stitch Student #17 case study)
   const FALLBACK_B1 = {
@@ -933,6 +935,122 @@
           </div>
         </div>
 
+        <!-- Interactive Category Breakdown Visualizer matching Stitch 03 -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+          <div class="flex items-center justify-between mb-space-xs">
+            <div class="flex flex-col">
+              <span class="font-title-md text-title-md text-on-surface font-bold">Distribuzione per Categoria</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">Tocca una categoria per confrontare i due scenari</span>
+            </div>
+            <span class="material-symbols-outlined text-secondary text-[24px]">donut_large</span>
+          </div>
+
+          <!-- Category Filter Tabs -->
+          <div class="flex gap-space-xs mt-space-sm mb-space-md">
+            <button
+              type="button"
+              on:click={() => breakdownCat = 'protein'}
+              class="flex-1 py-1.5 px-2 rounded-xl font-label-sm text-label-sm font-bold text-center transition-all {breakdownCat === 'protein' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}"
+            >
+              🥩 Proteine
+            </button>
+            <button
+              type="button"
+              on:click={() => breakdownCat = 'base'}
+              class="flex-1 py-1.5 px-2 rounded-xl font-label-sm text-label-sm font-bold text-center transition-all {breakdownCat === 'base' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}"
+            >
+              🍚 Basi
+            </button>
+            <button
+              type="button"
+              on:click={() => breakdownCat = 'extra'}
+              class="flex-1 py-1.5 px-2 rounded-xl font-label-sm text-label-sm font-bold text-center transition-all {breakdownCat === 'extra' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}"
+            >
+              🥑 Extra/Topping
+            </button>
+          </div>
+
+          <!-- Comparative Bar Visual -->
+          <div class="space-y-space-sm">
+            {#if breakdownCat === 'protein'}
+              <div>
+                <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+                  <span class="font-bold text-error">Bowl 1 (Salmone 120g)</span>
+                  <span class="font-bold text-on-surface">1.820 g CO₂e (69%)</span>
+                </div>
+                <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+                  <div class="h-full bg-error rounded-full transition-all duration-500" style="width: 82%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+                  <span class="font-bold text-secondary">Bowl 2 (Ceci bio 120g)</span>
+                  <span class="font-bold text-on-surface">210 g CO₂e (28%)</span>
+                </div>
+                <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+                  <div class="h-full bg-secondary rounded-full transition-all duration-500" style="width: 14%;"></div>
+                </div>
+              </div>
+              <div class="bg-surface-container rounded-xl p-space-sm text-on-surface font-body-sm text-body-sm mt-space-sm flex items-start gap-space-xs">
+                <span class="material-symbols-outlined text-secondary text-[20px] shrink-0">lightbulb</span>
+                <span class="text-on-surface-variant">
+                  <strong>Fattore Chiave:</strong> Le proteine animali (soprattutto pesce da allevamento intensivo e carni rosse) pesano fino al 70-80% dell'impatto totale a causa della catena alimentare e logistica refrigerata.
+                </span>
+              </div>
+            {:else if breakdownCat === 'base'}
+              <div>
+                <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+                  <span class="font-bold text-error">Bowl 1 (Riso Bianco 150g)</span>
+                  <span class="font-bold text-on-surface">510 g CO₂e (19%)</span>
+                </div>
+                <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+                  <div class="h-full bg-error rounded-full transition-all duration-500" style="width: 40%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+                  <span class="font-bold text-secondary">Bowl 2 (Patate dolci 150g)</span>
+                  <span class="font-bold text-on-surface">180 g CO₂e (24%)</span>
+                </div>
+                <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+                  <div class="h-full bg-secondary rounded-full transition-all duration-500" style="width: 16%;"></div>
+                </div>
+              </div>
+              <div class="bg-surface-container rounded-xl p-space-sm text-on-surface font-body-sm text-body-sm mt-space-sm flex items-start gap-space-xs">
+                <span class="material-symbols-outlined text-secondary text-[20px] shrink-0">lightbulb</span>
+                <span class="text-on-surface-variant">
+                  <strong>Fattore Chiave:</strong> Le risaie allagate generano emissioni anaerobiche di gas metano (CH₄). Sostituire con tuberi o cereali asciutti abbatte l'impronta di oltre il 60%.
+                </span>
+              </div>
+            {:else}
+              <div>
+                <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+                  <span class="font-bold text-error">Bowl 1 (Avocado + Serra 100g)</span>
+                  <span class="font-bold text-on-surface">296 g CO₂e (12%)</span>
+                </div>
+                <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+                  <div class="h-full bg-error rounded-full transition-all duration-500" style="width: 26%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between items-center font-label-sm text-label-sm mb-1">
+                  <span class="font-bold text-secondary">Bowl 2 (Carote + Noci 100g)</span>
+                  <span class="font-bold text-on-surface">345 g CO₂e (48%)</span>
+                </div>
+                <div class="h-3.5 bg-surface-container-high rounded-full overflow-hidden flex">
+                  <div class="h-full bg-secondary rounded-full transition-all duration-500" style="width: 29%;"></div>
+                </div>
+              </div>
+              <div class="bg-surface-container rounded-xl p-space-sm text-on-surface font-body-sm text-body-sm mt-space-sm flex items-start gap-space-xs">
+                <span class="material-symbols-outlined text-secondary text-[20px] shrink-0">lightbulb</span>
+                <span class="text-on-surface-variant">
+                  <strong>Fattore Chiave:</strong> La frutta a guscio locale ha un'impronta leggermente maggiore per densità calorica, ma garantisce fotosintesi arborea e zero trasporto aereo!
+                </span>
+              </div>
+            {/if}
+          </div>
+        </div>
+
         <!-- Discussion Card matching Stitch 03 -->
         <div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex items-start gap-space-sm">
           <div class="w-10 h-10 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
@@ -949,6 +1067,92 @@
           </div>
         </div>
 
+        <!-- Secondary Photo Card: Sustainable Food Prep matching Stitch 03 -->
+        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center gap-space-md">
+          <img
+            class="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm"
+            alt="Dieta Mediterranea e Pianeta"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWvnKUx9GFN5Tlhr_XP1JokDKMbvceCaePhf93kz9wujuczLtDZoLImmW8EnIem_rm7QOCRCKffUDfcCs7JrlRH91V5e9gaRiYU96hJbd2DhGY2w7iKLDoy453XMyDzRjD4xsN6N6u1ZxMrkX5Dm1FhotqeZbtTJG9ByXEaLi3p0GsPG0uMdHoxrnguN3RHbVE9CukyuHNANRSJmPqXzWa7GP0ErZbRHZtoCBLzJ1etoZmBfbkkAqopA"
+          />
+          <div class="flex flex-col min-w-0">
+            <span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Cultura Cibo</span>
+            <span class="font-title-md text-title-md text-on-surface font-bold truncate">Dieta Mediterranea &amp; Pianeta</span>
+            <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-0.5">
+              I legumi locali non solo riducono la CO₂, ma rigenerano l'azoto nei suoli agricoli.
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons Section matching Stitch 03 -->
+        <div class="flex flex-col gap-space-sm pb-12">
+          <button
+            type="button"
+            on:click={() => showTipsModal = true}
+            class="w-full bg-primary-container text-on-primary py-space-sm px-space-md rounded-xl font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-xs shadow-sm active:scale-[0.98] transition-transform"
+          >
+            <span class="material-symbols-outlined text-[20px] text-secondary-fixed">psychology_alt</span>
+            <span>Vedi suggerimenti e consigli sostenibili 🌿</span>
+          </button>
+
+          <div class="w-full bg-surface-container-high text-on-surface py-space-sm px-space-md rounded-xl font-label-md text-label-md font-semibold flex items-center justify-center gap-space-xs shadow-sm">
+            <div class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping mr-1"></div>
+            <span>In attesa che il docente apra la discussione...</span>
+          </div>
+        </div>
+
+      </div>
+    {/if}
+
+    <!-- Tips Modal matching Stitch 03 -->
+    {#if showTipsModal}
+      <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-2xl p-space-lg w-full max-w-lg shadow-2xl relative max-h-[85vh] overflow-y-auto">
+          <div class="flex items-center justify-between pb-space-sm mb-space-sm border-b border-surface-container">
+            <div class="flex items-center gap-space-xs">
+              <span class="material-symbols-outlined text-secondary text-[24px]">energy_savings_leaf</span>
+              <span class="font-headline-sm text-headline-sm font-bold text-primary">Consigli Pratici Quotidiani</span>
+            </div>
+            <button
+              type="button"
+              on:click={() => showTipsModal = false}
+              class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors"
+            >
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+
+          <div class="space-y-space-md">
+            <div class="flex gap-space-sm items-start">
+              <div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold shrink-0">1</div>
+              <div>
+                <div class="font-title-md text-title-md font-bold text-on-surface">La Regola del 70/30</div>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Componi il tuo piatto con il 70% di vegetali, cereali integrali e legumi. Lascia alle proteine animali un ruolo da contorno speciale.</p>
+              </div>
+            </div>
+            <div class="flex gap-space-sm items-start">
+              <div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold shrink-0">2</div>
+              <div>
+                <div class="font-title-md text-title-md font-bold text-on-surface">Fai Attenzione alla Serra Calda</div>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">I pomodorini e le verdure fuori stagione coltivate in serre riscaldate a gasolio possono emettere più CO₂ di alcuni tagli di carne bianca locale.</p>
+              </div>
+            </div>
+            <div class="flex gap-space-sm items-start">
+              <div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold shrink-0">3</div>
+              <div>
+                <div class="font-title-md text-title-md font-bold text-on-surface">Varietà dei Cereali</div>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Alterna il riso bianco (che emette metano nelle risaie allagate) con orzo, farro, patate e grano saraceno a basso consumo idrico.</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            on:click={() => showTipsModal = false}
+            class="mt-space-lg w-full bg-primary text-on-primary py-space-sm rounded-xl font-label-lg text-label-lg font-bold hover:bg-primary-container transition-colors"
+          >
+            Ho Capito, Torna ai Risultati
+          </button>
+        </div>
       </div>
     {/if}
 
