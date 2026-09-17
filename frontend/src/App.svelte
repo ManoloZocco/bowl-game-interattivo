@@ -2,7 +2,7 @@
   import { onMount, tick } from 'svelte'
   import TeacherPanel from './lib/TeacherPanel.svelte'
   import StudentBowl from './lib/StudentBowl.svelte'
-  import { getSessionByCode, createParticipant } from './lib/api'
+  import { getSessionByCode, createParticipant, createSession } from './lib/api'
   import type { Participant, Session } from './lib/types'
 
   type View = 'landing' | 'teacher' | 'student'
@@ -10,6 +10,7 @@
   let view: View = 'landing'
   let activeSession: Session | null = null
   let activeParticipant: Participant | null = null
+  let teacherLoading = false
 
   // Student joining state - 5 slot inputs matching Stitch design
   let pinChars: string[] = ['', '', '', '', '']
@@ -121,13 +122,30 @@
     }
   }
 
-  function handleTeacherAccess(autoCreate = false) {
-    if (!TEACHER_PIN || teacherPinInput.trim() === TEACHER_PIN) {
-      teacherAuthenticated = true
-      teacherPinError = ''
-      view = 'teacher'
-    } else {
+  async function handleTeacherAccess(autoCreate = false) {
+    if (TEACHER_PIN && teacherPinInput.trim() !== TEACHER_PIN) {
       teacherPinError = 'PIN non corretto. Inserisci il codice docente.'
+      return
+    }
+
+    teacherAuthenticated = true
+    teacherPinError = ''
+
+    if (autoCreate) {
+      try {
+        teacherLoading = true
+        const newSession = await createSession()
+        activeSession = newSession
+        view = 'teacher'
+      } catch (err) {
+        console.error(err)
+        teacherPinError = 'Errore durante la creazione della classe. Riprova.'
+      } finally {
+        teacherLoading = false
+      }
+    } else {
+      activeSession = null
+      view = 'teacher'
     }
   }
 
@@ -406,7 +424,8 @@
               <button
                 type="button"
                 on:click={() => handleTeacherAccess(false)}
-                class="w-full sm:flex-1 h-14 rounded-xl bg-secondary-container text-on-secondary-container font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs shadow-sm transition-all duration-200 hover:bg-secondary-fixed active:scale-[0.99]"
+                disabled={teacherLoading}
+                class="w-full sm:flex-1 h-14 rounded-xl bg-secondary-container text-on-secondary-container font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs shadow-sm transition-all duration-200 hover:bg-secondary-fixed active:scale-[0.99] disabled:opacity-60"
               >
                 <span class="material-symbols-outlined text-[20px]">tv</span>
                 <span>Dashboard LIM</span>
@@ -414,10 +433,16 @@
               <button
                 type="button"
                 on:click={() => handleTeacherAccess(true)}
-                class="w-full sm:flex-1 h-14 rounded-xl bg-surface-container-lowest text-primary font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs shadow-sm transition-all duration-200 hover:bg-surface-container-highest active:scale-[0.99]"
+                disabled={teacherLoading}
+                class="w-full sm:flex-1 h-14 rounded-xl bg-surface-container-lowest text-primary font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs shadow-sm transition-all duration-200 hover:bg-surface-container-highest active:scale-[0.99] disabled:opacity-60"
               >
-                <span class="material-symbols-outlined text-[20px]">add_circle</span>
-                <span>Nuova Classe</span>
+                {#if teacherLoading}
+                  <span class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                  <span>Creazione...</span>
+                {:else}
+                  <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                  <span>Nuova Classe</span>
+                {/if}
               </button>
             </div>
 
@@ -464,7 +489,7 @@
   </footer>
 
 {:else if view === 'teacher'}
-  <TeacherPanel on:exit={exitToLanding} />
+  <TeacherPanel initialSession={activeSession} on:exit={exitToLanding} />
 
 {:else if view === 'student'}
   {#if activeSession && activeParticipant}

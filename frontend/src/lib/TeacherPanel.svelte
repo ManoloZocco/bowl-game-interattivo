@@ -25,16 +25,16 @@
 
   let isLoading = false
   let errorMessage = ''
-  let participantCount = 28
+  let participantCount = initialSession && initialSession.id !== 'demo-session' ? 0 : 28
   let summary: ClassSummaryRow[] = []
-  let isFinalized = true
+  let isFinalized = initialSession && initialSession.id !== 'demo-session' ? false : true
   let pollHandle: number | null = null
 
   // UI state
   let showQrModal = false
-  let selectedStudentIndex = 16 // student #17 by default
+  let selectedStudentIndex = 0
   let sortBy: 'delta' | 'number' = 'delta'
-  let useDemoData = true
+  let useDemoData = !initialSession || initialSession.id === 'demo-session'
 
   // 28 Sample students from Stitch design
   const DEMO_STUDENTS = [
@@ -158,7 +158,7 @@
   }
 
   // Active student list (real or demo)
-  $: activeList = useDemoData || summary.length === 0
+  $: activeList = useDemoData
     ? DEMO_STUDENTS.map((d, i) => ({
         participantId: `demo-${d.number}`,
         participantNumber: d.number,
@@ -192,7 +192,7 @@
       }))
     : summary.map((s, i) => ({
         ...s,
-        displayText: s.bowl2?.protein_ids.map((id) => getIngredient(id)?.label).join(', ') || 'In attesa'
+        displayText: s.bowl2?.protein_ids?.map((id) => getIngredient(id)?.label).join(', ') || (s.bowl1 ? 'Fase 1 completata' : 'In attesa')
       }))
 
   $: studentsWithBothBowls = activeList.filter((s) => s.bowl1 && s.bowl2)
@@ -204,20 +204,20 @@
   $: totalKmSaved = (totalCo2Saved / DIESEL_CO2_PER_KM).toFixed(1)
 
   $: avgBowl1Co2 =
-    studentsWithBothBowls.length > 0 ? Math.round(totalCo2Bowl1 / studentsWithBothBowls.length) : 2450
+    studentsWithBothBowls.length > 0 ? Math.round(totalCo2Bowl1 / studentsWithBothBowls.length) : (useDemoData ? 2450 : 0)
 
   $: avgBowl2Co2 =
-    studentsWithBothBowls.length > 0 ? Math.round(totalCo2Bowl2 / studentsWithBothBowls.length) : 780
+    studentsWithBothBowls.length > 0 ? Math.round(totalCo2Bowl2 / studentsWithBothBowls.length) : (useDemoData ? 780 : 0)
 
   $: avgPercentReduction =
-    avgBowl1Co2 > 0 && avgBowl2Co2 > 0 ? Math.round(((avgBowl1Co2 - avgBowl2Co2) / avgBowl1Co2) * 100) : 68
+    avgBowl1Co2 > 0 && avgBowl2Co2 > 0 ? Math.round(((avgBowl1Co2 - avgBowl2Co2) / avgBowl1Co2) * 100) : (useDemoData ? 68 : 0)
 
   $: improvedCount = studentsWithBothBowls.filter(
     (s) => (s.bowl1?.total_co2_g ?? 0) > (s.bowl2?.total_co2_g ?? 0)
   ).length
 
   $: percentImproved =
-    studentsWithBothBowls.length > 0 ? Math.round((improvedCount / studentsWithBothBowls.length) * 100) : 100
+    studentsWithBothBowls.length > 0 ? Math.round((improvedCount / studentsWithBothBowls.length) * 100) : (useDemoData ? 100 : 0)
 
   $: sortedStudents = [...activeList].sort((a, b) => {
     if (sortBy === 'delta') {
@@ -672,7 +672,7 @@
               <div class="flex items-center gap-space-xs">
                 <span class="font-headline-md text-headline-md text-primary font-bold">Mappa Anonima dei Partecipanti</span>
                 <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">
-                  28 / 28 Completati
+                  {useDemoData ? '28 / 28 Completati' : `${studentsWithBothBowls.length} / ${participantCount} Completati`}
                 </span>
               </div>
               <span class="font-body-sm text-body-sm text-on-surface-variant">
@@ -700,31 +700,39 @@
           </div>
 
           <!-- 7-column grid matching Stitch 05 -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-space-sm" id="students-wall">
-            {#each sortedStudents as student, idx}
-              {@const isSelected = selectedStudent?.participantId === student.participantId}
-              {@const numStr = String(student.participantNumber).padStart(2, '0')}
-              <button
-                type="button"
-                on:click={() => (selectedStudentIndex = idx)}
-                class="cursor-pointer p-space-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-sm flex flex-col justify-between text-left {isSelected ? 'bg-secondary-container text-on-secondary-container ring-2 ring-secondary' : 'bg-surface-container-low hover:bg-surface-container text-on-surface'}"
-              >
-                <div class="flex items-center justify-between w-full">
-                  <span class="font-label-sm text-label-sm font-bold text-on-surface-variant">#{numStr}</span>
-                  <span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded {isSelected ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container'} font-extrabold">
-                    -{student.bowl1 && student.bowl2 ? Math.round(((student.bowl1.total_co2_g - student.bowl2.total_co2_g) / student.bowl1.total_co2_g) * 100) : 70}%
+          {#if sortedStudents.length === 0}
+            <div class="py-12 text-center col-span-full text-on-surface-variant flex flex-col items-center justify-center p-space-lg rounded-xl bg-surface-container-low border border-dashed border-outline-variant">
+              <span class="material-symbols-outlined text-[48px] text-secondary mb-2">group_add</span>
+              <p class="font-headline-sm text-headline-sm font-bold text-primary">In attesa dei primi studenti...</p>
+              <p class="font-body-md text-body-md mt-1">Invita la classe a collegarsi digitando il PIN <span class="font-mono font-extrabold text-secondary tracking-widest text-lg px-2 py-0.5 rounded bg-surface-container-lowest shadow-sm">{session.code}</span> oppure proietta il QR code a schermo intero.</p>
+            </div>
+          {:else}
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-space-sm" id="students-wall">
+              {#each sortedStudents as student, idx}
+                {@const isSelected = selectedStudent?.participantId === student.participantId}
+                {@const numStr = String(student.participantNumber ?? (idx + 1)).padStart(2, '0')}
+                <button
+                  type="button"
+                  on:click={() => (selectedStudentIndex = idx)}
+                  class="cursor-pointer p-space-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-sm flex flex-col justify-between text-left {isSelected ? 'bg-secondary-container text-on-secondary-container ring-2 ring-secondary' : 'bg-surface-container-low hover:bg-surface-container text-on-surface'}"
+                >
+                  <div class="flex items-center justify-between w-full">
+                    <span class="font-label-sm text-label-sm font-bold text-on-surface-variant">#{numStr}</span>
+                    <span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded {isSelected ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container'} font-extrabold">
+                      -{student.bowl1 && student.bowl2 ? Math.round(((student.bowl1.total_co2_g - student.bowl2.total_co2_g) / student.bowl1.total_co2_g) * 100) : (useDemoData ? 70 : 0)}%
+                    </span>
+                  </div>
+                  <div class="my-1.5 flex flex-col font-label-sm text-label-sm">
+                    <span class="text-error font-medium">{student.bowl1?.total_co2_g ?? 0}g</span>
+                    <span class="text-secondary font-bold text-title-md">{student.bowl2?.total_co2_g ?? 0}g</span>
+                  </div>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant truncate w-full">
+                    {student.displayText}
                   </span>
-                </div>
-                <div class="my-1.5 flex flex-col font-label-sm text-label-sm">
-                  <span class="text-error font-medium">{student.bowl1?.total_co2_g ?? 2400}g</span>
-                  <span class="text-secondary font-bold text-title-md">{student.bowl2?.total_co2_g ?? 700}g</span>
-                </div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant truncate w-full">
-                  {student.displayText}
-                </span>
-              </button>
-            {/each}
-          </div>
+                </button>
+              {/each}
+            </div>
+          {/if}
         </div>
 
         <!-- LIM Bottom Control Bar matching Stitch 05 -->
