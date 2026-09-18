@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy, onMount } from 'svelte'
+  import { createEventDispatcher, onDestroy, onMount, tick } from 'svelte'
   import type { Bowl, Participant, Session } from './types'
   import { BASES, EXTRAS, PROTEINS, computeCo2, getIngredient } from './ingredients'
   import { fetchParticipantBowls, fetchSession, saveBowl } from './api'
@@ -83,6 +83,15 @@
           baseId = ''
           selectedProteins = []
           selectedExtras = []
+        }
+        await tick()
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+        }
+      } else if (lastKnownPhase === 2 && updatedSession.phase === 3) {
+        await tick()
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
         }
       }
       lastKnownPhase = updatedSession.phase
@@ -253,6 +262,13 @@
       if (liveSession.phase === 1) {
         isWaitingPhase1 = true
         hasEditedPhase1 = false
+        await tick()
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+          setTimeout(() => {
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+          }, 50)
+        }
       }
     } catch (err) {
       console.error(err)
@@ -573,7 +589,7 @@
           <div class="pt-space-xs flex flex-col gap-space-xs">
             <button
               type="button"
-              on:click={() => {
+              on:click={async () => {
                 isWaitingPhase1 = false
                 hasEditedPhase1 = true
                 if (summary?.bowl1 && !baseId) {
@@ -581,6 +597,10 @@
                   selectedProteins = summary.bowl1.protein_ids ? [...summary.bowl1.protein_ids] : []
                   selectedExtras = summary.bowl1.ingredient_ids ? [...summary.bowl1.ingredient_ids] : []
                   if (summary.bowl1.size) size = summary.bowl1.size
+                }
+                await tick()
+                if (typeof window !== 'undefined') {
+                  window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
                 }
               }}
               class="w-full h-14 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high border-2 border-primary/20 text-primary font-title-md text-title-md font-bold flex items-center justify-center gap-space-sm shadow-sm transition-all active:scale-[0.99]"
